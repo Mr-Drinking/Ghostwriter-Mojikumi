@@ -9,6 +9,10 @@ base: io.qt.qtwebengine.BaseApp
 base-version: '6.11'
 command: ghostwriter
 rename-icon: ghostwriter
+# This repository publishes a standalone .flatpak bundle rather than a
+# repository plus a separately downloaded .Locale extension. Keep every
+# interface translation inside that single distributable bundle.
+separate-locales: false
 
 finish-args:
   - --share=ipc

@@ -77,6 +77,7 @@ jobs:
           test "$(flatpak info --user --show-ref "${APP_ID}")" = \
             "app/${APP_ID}/x86_64/stable"
           flatpak run --command=sh "${APP_ID}" -c '
+            set -eu
             test -x /app/bin/ghostwriter
             test -f /app/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
             test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
