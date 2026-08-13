@@ -251,7 +251,9 @@ int main(int argc, char *argv[])
         }
         if (!failures.isEmpty()) {
             fprintf(stderr,
-                "translations-failed available=%s failures=%s\n",
+                "translations-failed app-dir=%s flatpak-id=%s available=%s failures=%s\n",
+                qPrintable(QCoreApplication::applicationDirPath()),
+                qPrintable(qEnvironmentVariable("FLATPAK_ID")),
                 qPrintable(available.join(QLatin1Char(','))),
                 qPrintable(failures.join(QLatin1Char(','))));
             return 1;

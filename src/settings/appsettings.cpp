@@ -778,7 +778,27 @@ AppSettings::AppSettings()
     // roots first, then the normal system data roots, and retain the concrete
     // file selected here so setLocale() uses exactly the same lookup result.
     const QDir applicationDir(QCoreApplication::applicationDirPath());
-    QStringList localeRoots {
+    QStringList localeRoots;
+#ifdef Q_OS_LINUX
+    // Flatpak applications always install their own data below /app.  Do not
+    // let translations from the shared KDE runtime under /usr take precedence
+    // over the translations shipped with this application.  In particular,
+    // applicationDirPath() can refer to a runtime launcher on some Flatpak
+    // configurations, so the package-relative fallback alone is insufficient.
+    if (!qEnvironmentVariableIsEmpty("FLATPAK_ID")
+        || QFileInfo(QStringLiteral("/.flatpak-info")).isFile()) {
+        localeRoots.append(QStringLiteral("/app/share/locale"));
+    }
+
+    // AppImage exposes its mounted application root in APPDIR.  Prefer the
+    // matching locale tree even when a launcher changes argv[0].
+    const QString appImageRoot = qEnvironmentVariable("APPDIR");
+    if (!appImageRoot.isEmpty()) {
+        localeRoots.append(
+            QDir(appImageRoot).filePath(QStringLiteral("usr/share/locale")));
+    }
+#endif
+    localeRoots.append(QStringList {
         applicationDir.filePath(QStringLiteral("data/locale")),
         applicationDir.filePath(QStringLiteral("../share/locale")),
         applicationDir.filePath(QStringLiteral("../Resources/locale")),
@@ -786,7 +806,7 @@ AppSettings::AppSettings()
         applicationDir.filePath(QStringLiteral("../Resources/data/locale")),
         applicationDir.filePath(QStringLiteral("locale")),
         applicationDir.filePath(QStringLiteral("../locale")),
-    };
+    });
     const QStringList dataPaths =
         QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
     for (const QString &dataPath : dataPaths) {
