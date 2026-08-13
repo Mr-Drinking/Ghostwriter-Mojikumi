@@ -6,11 +6,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 # About Ghostwriter Mojikumi
 
-**Product name:** Ghostwriter Mojikumi — Unofficial Fork  
-**Application ID:** `io.github.mr_drinking.ghostwritermojikumi`  
-**Fork release:** `26.08.0-mojikumi.1`  
+**Product name:** Ghostwriter Mojikumi — Unofficial Fork
+
+**Application ID:** `io.github.mr_drinking.ghostwritermojikumi`
+
+**Fork release:** `26.08.0-mojikumi.1`
+
 **Repository and homepage:**
-<https://github.com/Mr-Drinking/Ghostwriter-Mojikumi>  
+<https://github.com/Mr-Drinking/Ghostwriter-Mojikumi>
+
 **Support:**
 <https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/issues>
 
