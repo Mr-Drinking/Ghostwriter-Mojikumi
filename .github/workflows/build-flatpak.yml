@@ -80,6 +80,9 @@ jobs:
             test -x /app/bin/ghostwriter
             test -f /app/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
             test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
+            for locale in en ja ko zh_CN zh_TW; do
+              test -s "/app/share/locale/${locale}/LC_MESSAGES/ghostwriter_qt.qm"
+            done
             icon=/app/share/icons/hicolor/256x256/apps/io.github.mr_drinking.ghostwriter-mojikumi.png
             test -f "${icon}"
             echo "9bb90cba581358d578884d994e271e601dc4eff4fa88b0cb2672ec68f7852f37  ${icon}" |
@@ -95,6 +98,10 @@ jobs:
               --verify-bundled-font "${locale}" | tee /tmp/mojikumi-font-check.log
             grep -F 'bundled-font-ok' /tmp/mojikumi-font-check.log
           done
+          flatpak run --env=QT_QPA_PLATFORM=offscreen \
+            --command=ghostwriter "${APP_ID}" \
+            --verify-translations | tee /tmp/mojikumi-translation-check.log
+          grep -F 'translations-ok' /tmp/mojikumi-translation-check.log
 
           metadata="$(flatpak info --user --show-metadata "${APP_ID}")"
           grep -F 'runtime=org.kde.Platform/x86_64/6.11' <<<"${metadata}"

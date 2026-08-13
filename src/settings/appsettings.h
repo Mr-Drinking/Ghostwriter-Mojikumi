@@ -141,6 +141,7 @@ public:
     bool setLocale(const QString &locale);
 
     QStringList availableTranslations() const;
+    bool canLoadTranslation(const QString &locale) const;
 
     Q_SIGNAL void spellCheckSettingsChanged() const;
 

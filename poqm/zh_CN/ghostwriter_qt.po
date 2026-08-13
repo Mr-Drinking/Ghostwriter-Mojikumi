@@ -895,6 +895,11 @@ msgctxt "ghostwriter::MainWindow|"
 msgid "&Edit"
 msgstr "编辑(&E)"
 
+#: src/mainwindow.cpp:1078
+msgctxt "ghostwriter::MainWindow|"
+msgid "&Format"
+msgstr "格式(&O)"
+
 #: src/mainwindow.cpp:1095
 msgctxt "ghostwriter::MainWindow|"
 msgid "&View"

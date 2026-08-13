@@ -45,7 +45,7 @@ inline QString regionForLocale(const QString &localeName)
         }
         return QStringLiteral("SC");
     default:
-        // Ghostwriter Mojikumi is primarily a Chinese-writing fork. Keep its
+        // Ghostwriter Mojikumi primarily targets Chinese writing. Keep its
         // previous SC default when the interface language is not CJK.
         return QStringLiteral("SC");
     }

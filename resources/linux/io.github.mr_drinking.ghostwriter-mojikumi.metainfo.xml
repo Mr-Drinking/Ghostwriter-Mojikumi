@@ -4,17 +4,17 @@
   <launchable type="desktop-id">io.github.mr_drinking.ghostwriter-mojikumi.desktop</launchable>
   <metadata_license>CC-BY-SA-4.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
-  <name>Ghostwriter Mojikumi — Unofficial Fork</name>
-  <summary>Unofficial ghostwriter fork with CJK mojikumi support</summary>
+  <name>Ghostwriter Mojikumi</name>
+  <summary>Markdown editor with CJK mojikumi support</summary>
   <description>
     <p>
-      Ghostwriter Mojikumi is an unofficial fork of the KDE ghostwriter
-      Markdown editor. It enables CJK punctuation compression in both the
-      editor and live preview while preserving ghostwriter's distraction-free
-      writing workflow.
+      Ghostwriter Mojikumi is based on the KDE ghostwriter Markdown editor.
+      It enables CJK punctuation compression in both the editor and live
+      preview while preserving ghostwriter's distraction-free writing
+      workflow.
     </p>
     <p>
-      This fork is maintained independently and is not an official KDE release.
+      This modified version is maintained independently and is not a KDE release.
     </p>
   </description>
   <url type="homepage">https://github.com/Mr-Drinking/Ghostwriter-Mojikumi</url>

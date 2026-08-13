@@ -147,14 +147,14 @@ if(APPLE)
             "io.github.mr_drinking.ghostwriter-mojikumi"
         MACOSX_BUNDLE_BUNDLE_NAME "Ghostwriter Mojikumi"
         MACOSX_BUNDLE_INFO_STRING
-            "Ghostwriter Mojikumi — Unofficial Fork"
+            "Ghostwriter Mojikumi"
         MACOSX_BUNDLE_LONG_VERSION_STRING
             "Ghostwriter Mojikumi ${MOJIKUMI_RELEASE_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${RELEASE_SERVICE_VERSION}"
         # CFBundleVersion must use Apple's numeric syntax.
         MACOSX_BUNDLE_BUNDLE_VERSION "${RELEASE_SERVICE_VERSION}"
         MACOSX_BUNDLE_COPYRIGHT
-            "2014-${CURRENT_YEAR} the ghostwriter authors; fork modifications 2026 Mr-Drinking"
+            "2014-${CURRENT_YEAR} the ghostwriter authors; Mojikumi modifications 2026 Mr-Drinking"
     )
 endif()
 

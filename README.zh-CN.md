@@ -8,17 +8,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# Ghostwriter Mojikumi — 非官方分支
+# Ghostwriter Mojikumi
 
-Ghostwriter Mojikumi 是 KDE 专注写作 Markdown 编辑器 ghostwriter 的独立
-分支。它在编辑器和实时预览中加入了 CJK 标点挤压（mojikumi），并为这两个
-视图内置完整的 AOSP Noto Sans CJK 全地区字体集合。
+Ghostwriter Mojikumi 以 KDE 的专注写作 Markdown 编辑器 ghostwriter 为基础。
+它在编辑器和实时预览中加入了 CJK 标点挤压（mojikumi），并为这两个视图
+内置完整的 AOSP Noto Sans CJK 全地区字体集合。
 
 本仓库**不是 KDE 官方版本**。它以 ghostwriter `release/26.08` 分支中面向
 26.08.0 的快照提交 `db9690507e9ba9194af4ee0dbad66dc4b1507389`
-为基础，早于 KDE 发布 26.08.0 标签；本分支的修改于 2026-08-13 首次发布。
+为基础，早于 KDE 发布 26.08.0 标签；本项目的修改于 2026-08-13 首次发布。
 
-## 本分支的改动
+## Mojikumi 的改动
 
 - Qt 编辑器会对连续的 CJK 标点应用上下文挤压，并收紧每个视觉行行首符合
   条件的全角开标点。
@@ -48,11 +48,11 @@ Ghostwriter Mojikumi 是 KDE 专注写作 Markdown 编辑器 ghostwriter 的独�
 flatpak install --user ./ghostwriter-mojikumi-linux-x86_64.flatpak
 ```
 
-这些是非官方、未签名的开发构建。Windows 和 macOS 可能显示“未知发布者”或
+这些是未签名的开发构建。Windows 和 macOS 可能显示“未知发布者”或
 “无法验证开发者”等警告；绕过操作系统保护前，请先核对下载来源与校验和。
 
 请在本仓库的 [Issue 跟踪器](https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/issues)
-报告本分支特有的问题，不要向 KDE ghostwriter 维护者报告。
+报告 Ghostwriter Mojikumi 的问题，不要向 KDE ghostwriter 维护者报告。
 
 ## 字体行为
 
@@ -89,7 +89,7 @@ cmake --build build --config Release
 基础。原作者为 Megan Conkle，并有 ghostwriter 社区成员参与贡献。上游官网为
 <https://ghostwriter.kde.org>。
 
-本分支的身份、修改历史与支持范围汇总于 [`ABOUT.md`](ABOUT.md)。
+本项目的身份、修改历史与支持范围汇总于 [`ABOUT.md`](ABOUT.md)。
 
 ## 许可证
 

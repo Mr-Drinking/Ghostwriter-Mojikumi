@@ -92,18 +92,18 @@ int main(int argc, char *argv[])
 
     KAboutData aboutData("ghostwritermojikumi",
                     QCoreApplication::translate("main",
-                        "Ghostwriter Mojikumi — Unofficial Fork"),
+                        "Ghostwriter Mojikumi"),
                     APPVERSION);
 
     aboutData.setOrganizationDomain("mr_drinking.github.io");
     aboutData.setShortDescription(QCoreApplication::translate("main",
-        "An unofficial ghostwriter fork with CJK mojikumi support"));
+        "A Markdown editor with CJK mojikumi support"));
 
     aboutData.addAuthor("Megan Conkle", "Developer",
         "megan.conkle@kdemail.net");
     aboutData.addCredit("Mr-Drinking",
         QCoreApplication::translate("main",
-            "Maintainer of this unofficial fork and its mojikumi changes"),
+            "Maintainer of Ghostwriter Mojikumi and its CJK spacing changes"),
         QString(),
         "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi");
     aboutData.addCredit("Graeme Gott",
@@ -153,15 +153,15 @@ int main(int argc, char *argv[])
     aboutData.setLicense(KAboutLicense::GPL_V3);
     aboutData.setCopyrightStatement(QCoreApplication::translate("main",
         "Copyright 2014-%1 The ghostwriter team\n"
-        "Fork modifications copyright 2026 Mr-Drinking")
+        "Ghostwriter Mojikumi modifications copyright 2026 Mr-Drinking")
             .arg(QDateTime::currentDateTime().date().year()));
     aboutData.setOtherText(
         QStringLiteral("<img src=\":/resources/banner.png\"><p>")
         + QCoreApplication::translate("main",
-            "Unofficial fork of KDE ghostwriter, based on commit "
+            "Based on KDE ghostwriter commit "
             "db9690507e9ba9194af4ee0dbad66dc4b1507389. Modified on "
-            "2026-08-13 to add CJK mojikumi support. This is not an "
-            "official KDE release.")
+            "2026-08-13 to add CJK mojikumi support; independently "
+            "maintained by Mr-Drinking and not a KDE release.")
         + QStringLiteral("</p>"));
     aboutData.setHomepage(
         "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi");
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     QCommandLineParser clParser;
     aboutData.setupCommandLine(&clParser);
     clParser.setApplicationDescription(QCoreApplication::translate("main",
-        "Welcome to Ghostwriter Mojikumi — Unofficial Fork!"));
+        "Welcome to Ghostwriter Mojikumi!"));
     clParser.addPositionalArgument("file",
         QCoreApplication::translate("main", "(Optional) File to open."));
 
@@ -195,9 +195,15 @@ int main(int argc, char *argv[])
             "main",
             "Verifies the bundled regional font in Qt and the live-preview engine."),
         QCoreApplication::translate("main", "locale"));
+    QCommandLineOption verifyTranslationsOption(
+        "verify-translations",
+        QCoreApplication::translate(
+            "main",
+            "Verifies that the packaged interface translations can be found and loaded."));
 
     clParser.addOption(renderingOption);
     clParser.addOption(verifyBundledFontOption);
+    clParser.addOption(verifyTranslationsOption);
     clParser.process(app);
     aboutData.processCommandLine(&clParser);
 
@@ -206,6 +212,38 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon::fromTheme(
         QStringLiteral("ghostwriter"),
         QIcon(QStringLiteral(":/resources/icons/sc-apps-ghostwriter.svg"))));
+
+    if (clParser.isSet(verifyTranslationsOption)) {
+        ghostwriter::AppSettings *settings = ghostwriter::AppSettings::instance();
+        const QStringList available = settings->availableTranslations();
+        const QStringList required {
+            QStringLiteral("en"),
+            QStringLiteral("ja"),
+            QStringLiteral("ko"),
+            QStringLiteral("zh_CN"),
+            QStringLiteral("zh_TW"),
+        };
+        QStringList failures;
+        for (const QString &locale : required) {
+            if (!available.contains(locale)) {
+                failures.append(locale + QStringLiteral(":missing"));
+            } else if (!settings->canLoadTranslation(locale)) {
+                failures.append(locale + QStringLiteral(":unloadable"));
+            }
+        }
+        if (!failures.isEmpty()) {
+            fprintf(stderr,
+                "translations-failed available=%s failures=%s\n",
+                qPrintable(available.join(QLatin1Char(','))),
+                qPrintable(failures.join(QLatin1Char(','))));
+            return 1;
+        }
+        fprintf(stdout,
+            "translations-ok count=%lld locales=%s\n",
+            static_cast<long long>(available.size()),
+            qPrintable(available.join(QLatin1Char(','))));
+        return 0;
+    }
 
     if (clParser.isSet(verifyBundledFontOption)) {
         QString report;

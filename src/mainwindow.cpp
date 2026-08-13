@@ -1075,7 +1075,7 @@ void MainWindow::setupMenuBar()
 
     // Format Menu
 
-    menu = addMenuBarMenu("&Format");
+    menu = addMenuBarMenu(tr("&Format"));
     menu->addAction(appAction(AppActions::Strong));
     menu->addAction(appAction(AppActions::Emphasis));
     menu->addAction(appAction(AppActions::Strikethrough));

@@ -8,19 +8,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# Ghostwriter Mojikumi — Unofficial Fork
+# Ghostwriter Mojikumi
 
-Ghostwriter Mojikumi is an independent fork of KDE's distraction-free
-Markdown editor. It adds CJK mojikumi (punctuation compression) to both the
-editor and live preview and ships the complete AOSP Noto Sans CJK regional
-collection for those two views.
+Ghostwriter Mojikumi is based on KDE's distraction-free Markdown editor. It
+adds CJK mojikumi (punctuation compression) to both the editor and live
+preview and ships the complete AOSP Noto Sans CJK regional collection for
+those two views.
 
 This repository is **not an official KDE release**. It is based on commit
 `db9690507e9ba9194af4ee0dbad66dc4b1507389`, a snapshot from ghostwriter's
 `release/26.08` branch targeting 26.08.0, before KDE published a 26.08.0 tag.
-Fork modifications were first published on 2026-08-13.
+Ghostwriter Mojikumi's modifications were first published on 2026-08-13.
 
-## What the fork changes
+## What Mojikumi changes
 
 - The Qt editor applies contextual CJK punctuation compression and trims
   eligible fullwidth opening punctuation at the beginning of visual lines.
@@ -55,11 +55,11 @@ To install a downloaded Flatpak bundle for the current user:
 flatpak install --user ./ghostwriter-mojikumi-linux-x86_64.flatpak
 ```
 
-These are unofficial, unsigned development artifacts. Windows and macOS may
-show an unknown-publisher or unidentified-developer warning; verify the
-download source and checksums before bypassing operating-system protections.
+These are unsigned development artifacts. Windows and macOS may show an
+unknown-publisher or unidentified-developer warning; verify the download
+source and checksums before bypassing operating-system protections.
 
-Please report fork-specific issues in this repository's
+Please report Ghostwriter Mojikumi issues in this repository's
 [issue tracker](https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/issues),
 not to KDE's ghostwriter maintainers.
 
@@ -102,7 +102,7 @@ The application remains based on
 developed by Megan Conkle with contributions from the ghostwriter community.
 Upstream's homepage is <https://ghostwriter.kde.org>.
 
-Fork identity, modification history, and support boundaries are summarized in
+Project identity, modification history, and support boundaries are summarized in
 [`ABOUT.md`](ABOUT.md).
 
 ## Licensing

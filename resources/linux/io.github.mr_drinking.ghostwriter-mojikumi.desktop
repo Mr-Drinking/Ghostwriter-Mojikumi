@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Ghostwriter Mojikumi — Unofficial Fork
+Name=Ghostwriter Mojikumi
 GenericName=Markdown Editor
-Comment=Unofficial ghostwriter fork with CJK mojikumi support
+Comment=Markdown editor with CJK mojikumi support
 Icon=ghostwriter
 TryExec=ghostwriter
 Exec=ghostwriter %f
