@@ -132,6 +132,18 @@ endif()
 
 install(TARGETS ghostwriter ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
+# cmark-gfm is added with EXCLUDE_FROM_ALL, which deliberately suppresses all
+# install rules declared inside that subdirectory. MSVC cannot link it
+# statically, so explicitly install the two runtime DLLs ghostwriter imports.
+if(MSVC)
+    install(
+        TARGETS
+            libcmark-gfm
+            libcmark-gfm-extensions
+        RUNTIME DESTINATION ${KDE_INSTALL_BINDIR}
+    )
+endif()
+
 ecm_install_icons(
     ICONS ${ICON_FILES}
     DESTINATION ${KDE_INSTALL_ICONDIR}

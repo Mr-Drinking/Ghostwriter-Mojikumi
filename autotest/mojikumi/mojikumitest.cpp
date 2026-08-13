@@ -237,7 +237,8 @@ void MojikumiTest::onlyOpeningPunctuationAtExactLineStartGetsHalt()
 void MojikumiTest::codeBlocksAreDecorated()
 {
     QPlainTextEdit editor;
-    editor.setFixedSize(200, 180);
+    editor.setFixedHeight(180);
+    editor.setLineWrapMode(QPlainTextEdit::WidgetWidth);
     editor.setWordWrapMode(QTextOption::WrapAnywhere);
     QFont font(m_fontFamily);
     font.setPixelSize(26);
@@ -248,13 +249,30 @@ void MojikumiTest::codeBlocksAreDecorated()
     QTextBlock codeBlock = editor.document()->findBlockByNumber(1);
     QVERIFY(codeBlock.isValid());
     codeBlock.setUserState(MarkdownStateCodeBlock);
-    showAndLayOut(editor);
+    const int opening = codeBlock.text().indexOf(QChar(0x300c));
+    QVERIFY(opening > 0);
+
+    // Select a width that puts the opening punctuation at a soft-wrapped
+    // visual line start. A fixed widget width is not portable: frame and
+    // scrollbar metrics vary between Qt platform themes.
+    editor.show();
+    int fixtureWidth = 0;
+    for (int width = 64; width <= 400; ++width) {
+        editor.setFixedWidth(width);
+        QApplication::processEvents();
+        codeBlock = editor.document()->findBlockByNumber(1);
+        editor.document()->documentLayout()->blockBoundingRect(codeBlock);
+        if (visualLineStarts(codeBlock).contains(opening)) {
+            fixtureWidth = width;
+            break;
+        }
+    }
+    QVERIFY2(fixtureWidth > 0,
+             "Could not construct a soft-wrapped code-block line start");
 
     MojikumiDecorator decorator(&editor);
     decorator.scheduleAll();
     codeBlock = editor.document()->findBlockByNumber(1);
-    const int opening = codeBlock.text().indexOf(QChar(0x300c));
-    QVERIFY(opening > 0);
     QTRY_VERIFY_WITH_TIMEOUT(([&]() {
         const auto ranges = mojikumiRanges(codeBlock);
         return std::any_of(
@@ -294,22 +312,28 @@ void MojikumiTest::existingLayoutFormatsArePreserved()
     highlighter.rehighlight();
     showAndLayOut(editor);
 
+    const QTextBlock block = editor.document()->begin();
+    const QVector<QTextLayout::FormatRange> originalFormats =
+        block.layout()->formats();
+    QCOMPARE(originalFormats.size(), 1);
+    QCOMPARE(originalFormats.constFirst().format.underlineStyle(),
+             QTextCharFormat::SpellCheckUnderline);
+    QCOMPARE(originalFormats.constFirst().format.underlineColor(),
+             QColor(Qt::red));
+    QCOMPARE(originalFormats.constFirst().format.foreground().color(),
+             QColor(Qt::darkGreen));
+
     MojikumiDecorator decorator(&editor);
     decorator.scheduleAll();
     QTRY_VERIFY_WITH_TIMEOUT(!mojikumiRanges(editor.document()->begin()).isEmpty(), 1000);
 
-    bool foundUnderline = false;
-    const QTextBlock block = editor.document()->begin();
+    QVector<QTextLayout::FormatRange> retainedFormats;
     for (const QTextLayout::FormatRange &range : block.layout()->formats()) {
-        if (!MojikumiDecorator::isMojikumiFormat(range.format)
-            && range.format.fontUnderline()
-            && range.format.underlineStyle() == QTextCharFormat::SpellCheckUnderline
-            && range.format.underlineColor() == QColor(Qt::red)
-            && range.format.foreground().color() == QColor(Qt::darkGreen)) {
-            foundUnderline = true;
+        if (!MojikumiDecorator::isMojikumiFormat(range.format)) {
+            retainedFormats.append(range);
         }
     }
-    QVERIFY2(foundUnderline, "Decorator discarded an existing syntax/spell format range");
+    QCOMPARE(retainedFormats, originalFormats);
 }
 
 void MojikumiTest::resizeAndRehighlightDoNotLeaveStaleMarkers()

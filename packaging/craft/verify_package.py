@@ -114,6 +114,11 @@ def verify_windows(root: Path, expected_version: str) -> None:
         "ghostwriter.exe",
         named_files(entries, "ghostwriter.exe"),
     )
+    require("cmark-gfm runtime", named_files(entries, "cmark-gfm.dll"))
+    require(
+        "cmark-gfm extensions runtime",
+        named_files(entries, "cmark-gfm-extensions.dll"),
+    )
     require_webengine_payload(entries, "windows")
     run_version(executable, expected_version, executable.parent)
 
