@@ -81,6 +81,11 @@ jobs:
             test -f /app/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
             test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
           '
+          for locale in zh_CN ja_JP ko_KR zh_TW zh_HK; do
+            flatpak run --command=ghostwriter "${APP_ID}" \
+              --verify-bundled-font "${locale}" | tee /tmp/mojikumi-font-check.log
+            grep -F 'bundled-font-ok' /tmp/mojikumi-font-check.log
+          done
 
           metadata="$(flatpak info --user --show-metadata "${APP_ID}")"
           grep -F 'runtime=org.kde.Platform/x86_64/6.11' <<<"${metadata}"

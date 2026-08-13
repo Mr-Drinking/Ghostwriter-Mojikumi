@@ -11,7 +11,7 @@ find_package(Qt6 6.11 REQUIRED COMPONENTS Core Gui Test Widgets)
 qt_standard_project_setup()
 
 set(MOJIKUMI_TEST_FONT
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../resources/fonts/GhostwriterMojikumiCJKsc-Regular.otf")
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../resources/fonts/NotoSansCJK-Regular.ttc")
 
 if(NOT EXISTS "${MOJIKUMI_TEST_FONT}")
     message(FATAL_ERROR
@@ -23,6 +23,7 @@ ecm_add_test(
     mojikumitest.cpp
     ../../src/editor/mojikumidecorator.h
     ../../src/editor/mojikumidecorator.cpp
+    ../../src/settings/bundledfont.h
     LINK_LIBRARIES
         PRIVATE
             Qt::Core

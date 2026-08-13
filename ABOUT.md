@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 **Application ID:** `io.github.mr_drinking.ghostwriter-mojikumi`
 
-**Fork release:** `26.08.0-mojikumi.1`
+**Fork release:** `26.08.0`
 
 **Repository and homepage:**
 <https://github.com/Mr-Drinking/Ghostwriter-Mojikumi>
@@ -28,7 +28,7 @@ The fork is based on commit
 ghostwriter's `release/26.08` branch targeting 26.08.0, before KDE published a
 26.08.0 tag. The fork changes were first made and identified on 2026-08-13.
 They add CJK mojikumi in the editor and preview,
-unify their default font, warn when another font may change punctuation
+select a common regional font for both views, warn when another font may change punctuation
 spacing, and give distributable metadata an independent fork identity.
 
 The internal CMake target, executable name, source namespace, settings keys,

@@ -7,53 +7,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
 # Third-party notices
 
 This notice complements the per-file SPDX declarations, `.reuse/dep5`, and
-license texts under `LICENSES/`. It does not replace notices shipped inside
-third-party directories.
+license texts under `LICENSES/`.
 
-## Ghostwriter Mojikumi CJK
+## Noto Sans CJK
 
-The bundled `GhostwriterMojikumiCJKsc-Regular.otf` is a Modified Version under
-the SIL Open Font License 1.1. It is derived from the AOSP Noto Sans CJK 2.004
-static collection and is not the upstream Noto binary under a new filename.
-It is the complete proportional Simplified Chinese face (65,535 glyphs and
-44,776 mapped code points), extracted without Unicode subsetting.
+The bundled `resources/fonts/NotoSansCJK-Regular.ttc` is the complete,
+unmodified AOSP Noto Sans CJK 2.004 static collection. It contains 10 faces:
+proportional and Mono variants for JP, KR, SC, TC, and HK. Each face contains
+65,535 glyphs; no region or Unicode range is subsetted.
 
 - Copyright © 2014-2021 Adobe (<http://www.adobe.com/>).
 - License: SIL Open Font License 1.1 (`LICENSES/OFL-1.1.txt`).
-- Private SC family: `Ghostwriter Mojikumi CJK SC`.
-- Modification: the complete SC face is extracted from the TTC, and only its
-  OpenType `name` table records are changed to private
-  Ghostwriter Mojikumi family, full-name, unique-ID, and PostScript names. No
-  glyph outlines, cmap, GPOS, or other layout tables are intentionally changed.
-- Rebuild script: `tools/fonts/rename_noto_cjk.py`.
-
-The input is the AOSP static collection from
-`platform/external/noto-fonts`, commit
-`aa96a71129acdb7ad8005ab5de269cb506d29655`:
-
+- AOSP repository: `platform/external/noto-fonts`.
+- Commit: `aa96a71129acdb7ad8005ab5de269cb506d29655`.
+- Git blob: `31ab084552348c8e904eec503021544b3f4fd43b`.
+- Size: 19,474,972 bytes.
+- SHA-256: `39fb47c543da50618ab99e8b9e5529e54566bdbef41719308165975f627d5c93`.
 - [immutable source tree](https://android.googlesource.com/platform/external/noto-fonts/+/aa96a71129acdb7ad8005ab5de269cb506d29655/notosanscjk/)
 - [source TTC](https://android.googlesource.com/platform/external/noto-fonts/+/aa96a71129acdb7ad8005ab5de269cb506d29655/notosanscjk/NotoSansCJK-Regular.ttc?format=TEXT)
 - [AOSP license notice](https://android.googlesource.com/platform/external/noto-fonts/+/aa96a71129acdb7ad8005ab5de269cb506d29655/notosanscjk/NOTICE?format=TEXT)
 
-Reproducibility data:
-
-| Object | SHA-256 |
-| --- | --- |
-| AOSP `NotoSansCJK-Regular.ttc` input (19,474,972 bytes) | `39fb47c543da50618ab99e8b9e5529e54566bdbef41719308165975f627d5c93` |
-| `tools/fonts/rename_noto_cjk.py` | `155ea236ef53520b05c4a5fc0c17273cf5daa196d50068d4192d9d2c0711a8a4` |
-| `GhostwriterMojikumiCJKsc-Regular.otf` output (16,435,576 bytes) | `52e34b390a05ceb19f22e80f5bf7fed76b1f16aebc9965451ee6a5e433575888` |
-
-The AOSP file already contains Android's CJK spacing-related changes,
-including `chws`/`vchw` support. The fork's additional transformation is
-limited to extracting the complete SC face and applying the private naming
-described above. Distributions must ship the OFL notice with every copy of the
-font and must keep the font under OFL-1.1.
+The proportional faces contain AOSP's `chws`/`vchw` changes plus `halt`.
+Ghostwriter Mojikumi registers the same embedded bytes with Qt and copies them,
+after hash verification, to an application-private data directory because
+Chromium cannot fetch a `qrc:` web font from the preview's `file:` origin.
+That runtime copy is byte-identical and is not installed system-wide.
 
 ## Other bundled works
-
-The repository also contains or embeds the following upstream works. Their
-complete notices and license files remain in their respective directories and
-in `LICENSES/`:
 
 - KDE ghostwriter, including work originally developed by Megan Conkle:
   GPL-3.0-or-later.

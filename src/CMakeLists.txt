@@ -42,6 +42,7 @@ target_sources(ghostwriter PRIVATE
     preview/previewproxy.cpp
     preview/sandboxedwebpage.cpp
     settings/appsettings.cpp
+    settings/bundledfont.cpp
     settings/localedialog.cpp
     settings/preferencesdialog.cpp
     settings/previewoptionsdialog.cpp

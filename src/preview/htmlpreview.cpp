@@ -27,6 +27,8 @@
 #include "htmlpreview.h"
 #include "previewproxy.h"
 #include "sandboxedwebpage.h"
+#include "settings/appsettings.h"
+#include "settings/bundledfont.h"
 
 namespace ghostwriter
 {
@@ -163,6 +165,9 @@ HtmlPreview::HtmlPreview
     } else {
         QTextStream stream(&wrapperHtmlFile);
         d->wrapperHtml = stream.readAll();
+        d->wrapperHtml.replace(
+            QStringLiteral("$document-language"),
+            BundledFont::htmlLanguageForLocale(AppSettings::instance()->locale()));
         wrapperHtmlFile.close();
     }
 
@@ -295,7 +300,12 @@ void HtmlPreviewPrivate::updateBaseDir()
             QFileInfo(document->filePath()).dir().absolutePath() 
                       + "/").toString();
     } else {
-        this->baseUrl = "";
+        // Keep unsaved documents on a local-file origin as well. Chromium
+        // rejects file: web fonts from the opaque origin produced by an empty
+        // base URL, which would silently fall back to a system font.
+        this->baseUrl = QUrl::fromLocalFile(
+            QFileInfo(BundledFont::privateFilePath()).absolutePath()
+                + QLatin1Char('/')).toString();
     }
 
     q->setHtml(wrapperHtml, QUrl(baseUrl));

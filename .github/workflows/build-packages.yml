@@ -31,7 +31,7 @@ env:
   CRAFT_KF_VERSION: 6.28.0
   CRAFT_PACKAGE: ghostwriter-mojikumi/ghostwriter-mojikumi
   CRAFT_QT_VERSION: 6.11.1
-  MOJIKUMI_VERSION: 26.08.0-mojikumi.1
+  MOJIKUMI_VERSION: 26.08.0
   PYTHONUTF8: "1"
 
 jobs:

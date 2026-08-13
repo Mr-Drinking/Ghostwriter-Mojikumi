@@ -12,8 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 Ghostwriter Mojikumi is an independent fork of KDE's distraction-free
 Markdown editor. It adds CJK mojikumi (punctuation compression) to both the
-editor and live preview and ships a consistently named CJK font for those two
-views.
+editor and live preview and ships the complete AOSP Noto Sans CJK regional
+collection for those two views.
 
 This repository is **not an official KDE release**. It is based on commit
 `db9690507e9ba9194af4ee0dbad66dc4b1507389`, a snapshot from ghostwriter's
@@ -65,16 +65,18 @@ not to KDE's ghostwriter maintainers.
 
 ## Font behavior
 
-The editor and preview use the bundled `Ghostwriter Mojikumi CJK SC` family by
-default. It is an OFL-1.1 Modified Version derived from AOSP Noto Sans CJK. The
-complete SC face is extracted without Unicode subsetting, and only its naming
-metadata is changed to give the bundled font a private family name.
+The editor and preview use the same bundled proportional face by default. The
+app chooses `Noto Sans CJK JP`, `KR`, `SC`, `TC`, or `HK` from the configured
+interface language (other languages default to SC). The bundled TTC is the
+complete, unmodified AOSP Noto Sans CJK static collection under OFL-1.1; its
+five proportional faces contain `chws` and `halt`. The Mono faces are not used
+because they lack `chws` and therefore cannot provide equivalent behavior.
 Choosing another font changes the editor, preview body, and preview code fonts
 together. The first non-bundled selection in a session shows a compatibility
 warning: fallback glyphs or different OpenType support can change punctuation
 spacing, so equivalent mojikumi is not guaranteed.
 
-The exact source, transformation, hashes, and license notice are documented in
+The exact source, hash, and license notice are documented in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Build

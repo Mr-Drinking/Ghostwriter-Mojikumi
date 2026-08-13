@@ -15,6 +15,7 @@
 
 #include <export/exporter.h>
 #include <editor/markdowneditortypes.h>
+#include "bundledfont.h"
 
 namespace ghostwriter
 {
@@ -31,8 +32,11 @@ class AppSettings : public QObject
     Q_DECLARE_PRIVATE(AppSettings)
 
 public:
+    // Kept as a source-compatible default for tests and downstream code. The
+    // actual bundled family is selected from the five proportional regional
+    // faces; the Mono faces lack chws and are intentionally not selected.
     inline static const QString BUNDLED_CJK_FONT_FAMILY =
-        QStringLiteral("Ghostwriter Mojikumi CJK SC");
+        BundledFont::familyForRegion(QStringLiteral("SC"));
     static const int MIN_TAB_WIDTH = 1;
     static const int MAX_TAB_WIDTH = 8;
     static const int DEFAULT_TAB_WIDTH = 4;
@@ -67,9 +71,9 @@ public:
 
     /**
      * Uses one font family and point size for the editor and both preview
-     * styles.  Returns false when the selected family is not the bundled CJK
-     * font.  The first non-bundled selection also emits a compatibility
-     * warning request.
+     * styles. A bundled regional selection follows the configured interface
+     * language. Returns false for an untested external font; the first such
+     * selection also emits a compatibility warning request.
      */
     bool setUnifiedFont(const QFont &font);
 

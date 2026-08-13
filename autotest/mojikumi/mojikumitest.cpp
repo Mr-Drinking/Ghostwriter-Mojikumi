@@ -21,6 +21,7 @@
 #include "../../src/editor/markdownstates.h"
 #include "../../src/editor/mojikumidecorator.h"
 #include "../../src/settings/appsettings.h"
+#include "../../src/settings/bundledfont.h"
 
 using namespace ghostwriter;
 
@@ -110,6 +111,7 @@ class MojikumiTest : public QObject
 private slots:
     void initTestCase();
     void bundledFontCompressesAdjacentPunctuation();
+    void regionalFamiliesFollowInterfaceLocale();
     void softWrappedVisualLineStartsGetHalt();
     void onlyOpeningPunctuationAtExactLineStartGetsHalt();
     void codeBlocksAreDecorated();
@@ -125,14 +127,33 @@ void MojikumiTest::initTestCase()
 {
     const int fontId = QFontDatabase::addApplicationFont(
         QString::fromUtf8(MOJIKUMI_TEST_FONT_PATH));
-    QVERIFY2(fontId >= 0, "The bundled private-name CJK OTF did not load");
+    QVERIFY2(fontId >= 0, "The bundled full-region CJK TTC did not load");
 
     const QStringList families = QFontDatabase::applicationFontFamilies(fontId);
-    const QString expectedFamily = AppSettings::BUNDLED_CJK_FONT_FAMILY;
-    QVERIFY2(families.contains(expectedFamily),
-             qPrintable(QStringLiteral("Private SC family missing from OTF; found: %1")
-                            .arg(families.join(QStringLiteral(", ")))));
-    m_fontFamily = expectedFamily;
+    for (const QString &expectedFamily : BundledFont::collectionFamilies()) {
+        QVERIFY2(families.contains(expectedFamily),
+                 qPrintable(QStringLiteral("Regional family %1 missing from TTC; found: %2")
+                                .arg(expectedFamily, families.join(QStringLiteral(", ")))));
+    }
+    m_fontFamily = BundledFont::familyForRegion(QStringLiteral("SC"));
+}
+
+void MojikumiTest::regionalFamiliesFollowInterfaceLocale()
+{
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("ja_JP")),
+             QStringLiteral("Noto Sans CJK JP"));
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("ko_KR")),
+             QStringLiteral("Noto Sans CJK KR"));
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("zh_CN")),
+             QStringLiteral("Noto Sans CJK SC"));
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("zh_Hant_TW")),
+             QStringLiteral("Noto Sans CJK TC"));
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("zh_HK")),
+             QStringLiteral("Noto Sans CJK HK"));
+    QCOMPARE(BundledFont::familyForLocale(QStringLiteral("en_US")),
+             QStringLiteral("Noto Sans CJK SC"));
+    QCOMPARE(BundledFont::postScriptNameForLocale(QStringLiteral("zh_HK")),
+             QStringLiteral("NotoSansCJKhk-Regular"));
 }
 
 void MojikumiTest::bundledFontCompressesAdjacentPunctuation()

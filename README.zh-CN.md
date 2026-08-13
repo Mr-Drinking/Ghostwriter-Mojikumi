@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 Ghostwriter Mojikumi 是 KDE 专注写作 Markdown 编辑器 ghostwriter 的独立
 分支。它在编辑器和实时预览中加入了 CJK 标点挤压（mojikumi），并为这两个
-视图内置了一款家族名固定的 CJK 字体。
+视图内置完整的 AOSP Noto Sans CJK 全地区字体集合。
 
 本仓库**不是 KDE 官方版本**。它以 ghostwriter `release/26.08` 分支中面向
 26.08.0 的快照提交 `db9690507e9ba9194af4ee0dbad66dc4b1507389`
@@ -56,16 +56,17 @@ flatpak install --user ./ghostwriter-mojikumi-linux-x86_64.flatpak
 
 ## 字体行为
 
-编辑器和预览默认使用内置的 `Ghostwriter Mojikumi CJK SC` 字体家族。它是
-基于 AOSP Noto Sans CJK、以 OFL-1.1“修改版本”形式发布的字体。内置文件是
-未做 Unicode 子集化的完整 SC 字体面，仅更改了命名元数据，以获得本项目专用
-的字体家族名。
+编辑器和预览默认使用同一个内置正常（非等宽）字体面。应用会根据界面语言从
+`Noto Sans CJK JP`、`KR`、`SC`、`TC`、`HK` 中自动选择；其他语言默认使用
+SC。内置 TTC 是完整、未修改的 AOSP Noto Sans CJK 静态全地区集合，以
+OFL-1.1 分发；其中 5 个正常字体面都含 `chws` 与 `halt`。集合中的 Mono
+字体面没有 `chws`，无法保证两区等同行为，因此不会作为默认编辑字体。
 
 选择其他字体时，编辑器、预览正文和预览代码字体会一并更改。每次运行中
 首次选择非内置字体时，程序会显示兼容性警告：字体回退字形或不同的 OpenType
 支持可能改变标点间距，因此无法保证得到等同的标点挤压效果。
 
-字体的确切来源、转换方式、哈希值与许可证声明详见
+字体的确切来源、哈希值与许可证声明详见
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 ## 构建

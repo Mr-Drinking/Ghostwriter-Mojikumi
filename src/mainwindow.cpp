@@ -130,7 +130,7 @@ MainWindow::MainWindow(const QString &filePath, QWidget *parent)
         MessageBoxHelper::warning(
             this,
             tr("The selected font may change Chinese punctuation spacing."),
-            tr("Only the bundled Ghostwriter Mojikumi CJK SC font is tested with the required punctuation-spacing features. "
+            tr("Only the bundled regional Noto Sans CJK faces are tested with the required punctuation-spacing features. "
                "%1 may use fallback glyphs or different spacing in the editor and preview.")
                 .arg(fontFamily));
     });

@@ -21,6 +21,7 @@
 #include "chromecolors.h"
 #include "stylesheetbuilder.h"
 #include "theme/svgicontheme.h"
+#include "settings/bundledfont.h"
 
 namespace ghostwriter
 {
@@ -47,8 +48,22 @@ StyleSheetBuilder::StyleSheetBuilder(const ChromeColors &colors,
     QTextStream stream(&styleSheet);
 
     m_styleSheetVariables["$editor-font-family"] = sanitizeFontFamily(editorFont);
-    m_styleSheetVariables["$body-font-family"] = sanitizeFontFamily(previewTextFont);
-    m_styleSheetVariables["$code-font-family"] = sanitizeFontFamily(previewCodeFont);
+    const bool usesBundledPreviewFont =
+        BundledFont::isCompatibleFamily(previewTextFont.family());
+    const QString previewTextFamily = usesBundledPreviewFont
+        ? QStringLiteral("Ghostwriter Mojikumi Regional")
+        : sanitizeFontFamily(previewTextFont);
+    const QString previewCodeFamily =
+        BundledFont::isCompatibleFamily(previewCodeFont.family())
+        ? QStringLiteral("Ghostwriter Mojikumi Regional")
+        : sanitizeFontFamily(previewCodeFont);
+    m_styleSheetVariables["$body-font-family"] = previewTextFamily;
+    m_styleSheetVariables["$code-font-family"] = previewCodeFamily;
+    m_styleSheetVariables["$bundled-font-url"] = usesBundledPreviewFont
+        ? BundledFont::webFontFileUrl()
+        : QStringLiteral("data:font/ttf;base64,AA==");
+    m_styleSheetVariables["$bundled-font-postscript"] =
+        BundledFont::postScriptNameForFamily(previewTextFont.family());
     m_styleSheetVariables["$editor-font-size"] = QString("%1pt").arg(editorFont.pointSize());
     m_styleSheetVariables["$body-font-size"] = QString("%1pt").arg(previewTextFont.pointSize());
     m_styleSheetVariables["$code-font-size"] = QString("%1pt").arg(previewCodeFont.pointSize());

@@ -20,6 +20,7 @@
 #include "logging.h"
 #include "mainwindow.h"
 #include "settings/appsettings.h"
+#include "settings/bundledfont.h"
 
 int main(int argc, char *argv[])
 {
@@ -141,13 +142,12 @@ int main(int argc, char *argv[])
             "A JavaScript display engine for mathematics"),
         QString(),
         "https://www.mathjax.org/");
-    aboutData.addComponent("Ghostwriter Mojikumi CJK",
+    aboutData.addComponent("Noto Sans CJK",
         QCoreApplication::translate("main",
-            "An SIL Open Font License 1.1 Modified Version derived from "
-            "the AOSP Noto Sans CJK static collection. This fork extracts "
-            "the complete SC face without Unicode subsetting and changes "
-            "its naming metadata to use a private family name; the "
-            "AOSP source includes the chws and vchw OpenType features."),
+            "The complete, unmodified AOSP Noto Sans CJK static collection "
+            "under SIL Open Font License 1.1. Ghostwriter Mojikumi selects "
+            "its JP, KR, SC, TC, or HK proportional face from the configured "
+            "interface language; those faces include chws and halt."),
         QString(),
         "https://android.googlesource.com/platform/external/noto-fonts/+/aa96a71129acdb7ad8005ab5de269cb506d29655/notosanscjk/");
     aboutData.setLicense(KAboutLicense::GPL_V3);
@@ -189,14 +189,35 @@ int main(int argc, char *argv[])
 
     QCommandLineOption renderingOption("disable-gpu",
         QCoreApplication::translate("main", "Disables GPU acceleration."));
+    QCommandLineOption verifyBundledFontOption(
+        "verify-bundled-font",
+        QCoreApplication::translate(
+            "main",
+            "Verifies the bundled regional font in Qt and the live-preview engine."),
+        QCoreApplication::translate("main", "locale"));
 
     clParser.addOption(renderingOption);
+    clParser.addOption(verifyBundledFontOption);
     clParser.process(app);
     aboutData.processCommandLine(&clParser);
 
     QStringList posArgs = clParser.positionalArguments();
 
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("ghostwriter")));
+    app.setWindowIcon(QIcon::fromTheme(
+        QStringLiteral("ghostwriter"),
+        QIcon(QStringLiteral(":/resources/icons/sc-apps-ghostwriter.svg"))));
+
+    if (clParser.isSet(verifyBundledFontOption)) {
+        QString report;
+        const QString requestedLocale = clParser.value(verifyBundledFontOption);
+        const bool verified = ghostwriter::BundledFont::verifyRendering(
+            requestedLocale.isEmpty()
+                ? ghostwriter::AppSettings::instance()->locale()
+                : requestedLocale,
+            &report);
+        fprintf(verified ? stdout : stderr, "%s\n", qPrintable(report));
+        return verified ? 0 : 1;
+    }
 
     if (posArgs.size() > 0) {
         filePath = posArgs.first();

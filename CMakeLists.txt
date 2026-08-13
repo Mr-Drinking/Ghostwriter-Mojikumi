@@ -35,7 +35,7 @@ set(RELEASE_SERVICE_VERSION_MAJOR "26")
 set(RELEASE_SERVICE_VERSION_MINOR "08")
 set(RELEASE_SERVICE_VERSION_MICRO "0")
 set(RELEASE_SERVICE_VERSION "${RELEASE_SERVICE_VERSION_MAJOR}.${RELEASE_SERVICE_VERSION_MINOR}.${RELEASE_SERVICE_VERSION_MICRO}")
-set(MOJIKUMI_RELEASE_VERSION "${RELEASE_SERVICE_VERSION}-mojikumi.1")
+set(MOJIKUMI_RELEASE_VERSION "${RELEASE_SERVICE_VERSION}")
 
 project(ghostwriter VERSION ${RELEASE_SERVICE_VERSION} LANGUAGES CXX)
 
@@ -96,8 +96,34 @@ set(ICON_FILES
     ${ICONS_FOLDER}/256-apps-ghostwriter.png
 )
 
-ecm_add_app_icon(ICONS_SOURCES ICONS ${ICON_FILES})
-target_sources(ghostwriter PRIVATE ${ICONS_SOURCES})
+if(WIN32)
+    # ECM's generated Windows resource was not embedded by the hosted MSVC
+    # build; the resulting executable displayed Windows' generic icon. Use
+    # the verified multi-resolution ICO explicitly for the PE resource.
+    enable_language(RC)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/windows/ghostwriter.ico
+        ${CMAKE_CURRENT_BINARY_DIR}/ghostwriter.ico
+        COPYONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/windows/ghostwriter.rc
+        ${CMAKE_CURRENT_BINARY_DIR}/ghostwriter.rc
+        COPYONLY)
+    target_sources(ghostwriter PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}/ghostwriter.rc)
+elseif(APPLE)
+    # Likewise, package the known ICNS explicitly. The previous ECM-generated
+    # source did not survive into the final Craft DMG application bundle.
+    set(MACOSX_BUNDLE_ICON_FILE ghostwriter.icns)
+    set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/ghostwriter.icns
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(ghostwriter PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/ghostwriter.icns)
+else()
+    ecm_add_app_icon(ICONS_SOURCES ICONS ${ICON_FILES})
+    target_sources(ghostwriter PRIVATE ${ICONS_SOURCES})
+endif()
 
 if(BUILD_TESTING)
    # CTest looks for its root test file in the top-level build directory.
