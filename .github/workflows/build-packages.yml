@@ -118,10 +118,25 @@ jobs:
             pkg-config \
             python3-pip
 
-      - name: Bootstrap KDE Craft
+      - name: Bootstrap KDE Craft on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://invent.kde.org/packaging/craft/-/raw/${env:CRAFT_REVISION}/setup/CraftBootstrap.py" `
+            -OutFile "CraftBootstrap.py"
+          python CraftBootstrap.py `
+            --prefix "${{ runner.temp }}/CraftRoot" `
+            --branch "${env:CRAFT_REVISION}" `
+            --use-defaults
+
+      - name: Bootstrap KDE Craft on Unix
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          export MSYS2_ARG_CONV_EXCL="*"
+          # GitHub's macOS and Linux images export Android SDK variables.
+          # Craft otherwise mistakes the host for an Android cross-build.
+          unset ANDROID_HOME ANDROID_SDK_ROOT ANDROID_NDK_HOME
           python - <<'PY'
           from pathlib import Path
           from urllib.request import urlretrieve
