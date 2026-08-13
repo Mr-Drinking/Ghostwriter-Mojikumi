@@ -34,7 +34,7 @@ Ghostwriter Mojikumi 是 KDE 专注写作 Markdown 编辑器 ghostwriter 的独�
 
 打包工作流面向以下产物：
 
-- Windows x86_64：便携版 ZIP；
+- Windows x86_64：便携版 ZIP 与 NSIS 安装器；
 - macOS：Intel 与 Apple 芯片版 DMG；
 - Linux x86_64：AppImage；
 - Linux x86_64：由仓库中的 Flatpak 清单与 CI 工作流从当前源码检出构建的

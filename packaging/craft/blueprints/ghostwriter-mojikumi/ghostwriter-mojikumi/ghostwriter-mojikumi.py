@@ -47,8 +47,9 @@ class subinfo(info.infoclass):
 class Package(CMakePackageBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        build_testing = "ON" if CraftCore.compiler.isLinux else "OFF"
         self.subinfo.options.configure.args += [
-            "-DBUILD_TESTING=OFF",
+            f"-DBUILD_TESTING={build_testing}",
             "-DQT_MAJOR_VERSION=6",
         ]
 
@@ -63,6 +64,8 @@ class Package(CMakePackageBase):
 
         if CraftCore.compiler.isWindows:
             self.defines["executable"] = "bin/ghostwriter.exe"
+            self.defines["company"] = "Mr-Drinking"
+            self.defines["icon"] = self.sourceDir() / "resources/windows/ghostwriter.ico"
             self.defines["shortcuts"] = [
                 {
                     "name": "Ghostwriter Mojikumi",

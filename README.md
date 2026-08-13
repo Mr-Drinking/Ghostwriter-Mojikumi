@@ -39,7 +39,7 @@ known engine boundary difference, not a change to the document text.
 
 The packaging workflows target the following artifacts:
 
-- Windows x86_64: portable ZIP;
+- Windows x86_64: portable ZIP and NSIS installer;
 - macOS: Intel and Apple silicon DMGs;
 - Linux x86_64: AppImage;
 - Linux x86_64: a Flatpak bundle built from this checkout by the repository's

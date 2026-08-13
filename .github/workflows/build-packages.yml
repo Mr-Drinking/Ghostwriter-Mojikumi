@@ -31,6 +31,7 @@ env:
   CRAFT_KF_VERSION: 6.28.0
   CRAFT_PACKAGE: ghostwriter-mojikumi/ghostwriter-mojikumi
   CRAFT_QT_VERSION: 6.11.1
+  MOJIKUMI_VERSION: 26.08.0-mojikumi.1
   PYTHONUTF8: "1"
 
 jobs:
@@ -65,12 +66,12 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
 
       - name: Select Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.13"
 
@@ -88,6 +89,7 @@ jobs:
             gperf \
             libatspi2.0-dev \
             libcap-dev \
+            libcups2-dev \
             libdbus-1-dev \
             libegl1-mesa-dev \
             libfontconfig1-dev \
@@ -189,6 +191,22 @@ jobs:
             --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
             "${CRAFT_PACKAGE}"
 
+      - name: Run all Linux tests
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          export MSYS2_ARG_CONV_EXCL="*"
+          export QT_QPA_PLATFORM=offscreen
+          python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" \
+            --ci-mode \
+            --output-on-failure \
+            --buildtype RelWithDebInfo \
+            --options "libs/qt6.version=${CRAFT_QT_VERSION}" \
+            --options "kde/frameworks.version=${CRAFT_KF_VERSION}" \
+            --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
+            --test \
+            "${CRAFT_PACKAGE}"
+
       - name: Create package
         shell: bash
         run: |
@@ -202,6 +220,173 @@ jobs:
             --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
             --package \
             "${CRAFT_PACKAGE}"
+
+      - name: Smoke-test Windows portable package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $archives = @(
+            Get-ChildItem -LiteralPath "artifacts" -Recurse -File |
+              Where-Object { $_.Extension -ieq ".zip" }
+          )
+          if ($archives.Count -ne 1) {
+            throw "Expected exactly one portable ZIP, found $($archives.Count)"
+          }
+
+          $packageRoot = Join-Path "${{ runner.temp }}" "ghostwriter-package-smoke"
+          New-Item -ItemType Directory -Path $packageRoot -Force | Out-Null
+          Expand-Archive -LiteralPath $archives[0].FullName -DestinationPath $packageRoot
+          python packaging/craft/verify_package.py `
+            windows `
+            $packageRoot `
+            "${env:MOJIKUMI_VERSION}"
+
+      - name: Create Windows installer from the same build
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Remove-Item Env:ANDROID_HOME -ErrorAction SilentlyContinue
+          Remove-Item Env:ANDROID_SDK_ROOT -ErrorAction SilentlyContinue
+          Remove-Item Env:ANDROID_NDK_HOME -ErrorAction SilentlyContinue
+
+          # The NSIS executable is a Craft packaging tool. Installing it here
+          # reuses the already-built application and dependency images.
+          python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" `
+            --ci-mode `
+            --output-on-failure `
+            dev-utils/nsis
+          python packaging/craft/configure_craft.py `
+            --settings "${{ runner.temp }}/CraftRoot/etc/CraftSettings.ini" `
+            --expected-abi "${{ matrix.expected_abi }}" `
+            --blueprints "${{ github.workspace }}/packaging/craft/blueprints" `
+            --destination "${{ github.workspace }}/artifacts" `
+            --package-type NullsoftInstallerPackager
+          python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" `
+            --ci-mode `
+            --output-on-failure `
+            --buildtype RelWithDebInfo `
+            --options "libs/qt6.version=${env:CRAFT_QT_VERSION}" `
+            --options "kde/frameworks.version=${env:CRAFT_KF_VERSION}" `
+            --options "${env:CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" `
+            --package `
+            "${env:CRAFT_PACKAGE}"
+
+      - name: Smoke-test Windows installer lifecycle
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installers = @(
+            Get-ChildItem -LiteralPath "artifacts" -Recurse -File |
+              Where-Object { $_.Extension -ieq ".exe" }
+          )
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one setup EXE, found $($installers.Count)"
+          }
+
+          # Craft's NSIS template enables MultiUser command-line mode. A
+          # current-user install avoids elevation on the hosted runner.
+          $installer = $installers[0].FullName
+          $install = Start-Process `
+            -FilePath $installer `
+            -ArgumentList @("/S", "/CurrentUser") `
+            -Wait `
+            -PassThru
+          if ($install.ExitCode -ne 0) {
+            throw "Installer exited with $($install.ExitCode)"
+          }
+
+          $installRoot = Join-Path $env:LOCALAPPDATA "Ghostwriter Mojikumi"
+          python packaging/craft/verify_package.py `
+            windows `
+            $installRoot `
+            "${env:MOJIKUMI_VERSION}"
+
+          $uninstaller = Join-Path $installRoot "uninstall.exe"
+          if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
+            throw "Missing NSIS uninstaller: $uninstaller"
+          }
+          $uninstall = Start-Process `
+            -FilePath $uninstaller `
+            -ArgumentList @("/S", "/CurrentUser") `
+            -Wait `
+            -PassThru
+          if ($uninstall.ExitCode -ne 0) {
+            throw "Uninstaller exited with $($uninstall.ExitCode)"
+          }
+          Start-Sleep -Seconds 2
+          if (Test-Path -LiteralPath (Join-Path $installRoot "bin/ghostwriter.exe")) {
+            throw "Uninstaller left the application executable behind"
+          }
+
+      - name: Smoke-test macOS disk image
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          DMG_PATH="$(python - <<'PY'
+          from pathlib import Path
+
+          images = [
+              path.resolve()
+              for path in Path("artifacts").rglob("*")
+              if path.is_file() and path.suffix.casefold() == ".dmg"
+          ]
+          if len(images) != 1:
+              raise SystemExit(
+                  f"Expected exactly one DMG, found {len(images)}: {images}"
+              )
+          print(images[0])
+          PY
+          )"
+          MOUNT_POINT="$(mktemp -d)"
+          cleanup() {
+            hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          hdiutil attach \
+            -readonly \
+            -nobrowse \
+            -mountpoint "$MOUNT_POINT" \
+            "$DMG_PATH"
+          python packaging/craft/verify_package.py \
+            macos \
+            "$MOUNT_POINT" \
+            "${MOJIKUMI_VERSION}"
+          hdiutil detach "$MOUNT_POINT"
+          trap - EXIT
+          rmdir "$MOUNT_POINT" 2>/dev/null || true
+
+      - name: Smoke-test Linux AppImage
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          APPIMAGE_PATH="$(python - <<'PY'
+          from pathlib import Path
+
+          images = [
+              path.resolve()
+              for path in Path("artifacts").rglob("*")
+              if path.is_file() and path.suffix.casefold() == ".appimage"
+          ]
+          if len(images) != 1:
+              raise SystemExit(
+                  f"Expected exactly one AppImage, found {len(images)}: {images}"
+              )
+          print(images[0])
+          PY
+          )"
+          chmod +x "$APPIMAGE_PATH"
+          EXTRACT_ROOT="$(mktemp -d)"
+          (
+            cd "$EXTRACT_ROOT"
+            "$APPIMAGE_PATH" --appimage-extract >/dev/null
+          )
+          python packaging/craft/verify_package.py \
+            linux \
+            "$EXTRACT_ROOT/squashfs-root" \
+            "${MOJIKUMI_VERSION}"
 
       - name: List produced files
         if: always()
@@ -217,7 +402,7 @@ jobs:
           PY
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact }}
           path: artifacts/

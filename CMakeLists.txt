@@ -100,6 +100,10 @@ ecm_add_app_icon(ICONS_SOURCES ICONS ${ICON_FILES})
 target_sources(ghostwriter PRIVATE ${ICONS_SOURCES})
 
 if(BUILD_TESTING)
+   # CTest looks for its root test file in the top-level build directory.
+   # Enabling it only inside autotest would let `ctest` report success while
+   # discovering no tests when Craft invokes it from the build root.
+   enable_testing()
    add_subdirectory(autotest)
 endif()
 

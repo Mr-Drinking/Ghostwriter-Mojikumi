@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
 # SPDX-License-Identifier: BSD-2-Clause
 
-# CUPS installs its legacy image/raster helper alongside libcups. Qt's print
-# support only links libcups, while linuxdeploy scans every ELF in the AppDir.
-# Exclude the unused helper because the cached CUPS build requires libcrypt.so.2,
-# which is not part of the Ubuntu 24.04 AppImage baseline.
-lib/libcupsimage\.so(?:\..*)?
+# KDE's Craft cache was built on a host where CUPS links libcrypt.so.2, which
+# is not part of the Ubuntu 24.04 AppImage baseline.  Exclude those cached
+# copies so linuxdeploy collects Ubuntu's ABI-compatible libcups.so.2 instead.
+# Qt does not link the legacy libcupsimage helper.
+lib/libcups(?:image)?\.so(?:\..*)?
