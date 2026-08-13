@@ -292,11 +292,19 @@ int main(int argc, char *argv[])
             darkWindow.lightnessF() < darkText.lightnessF();
         const bool lightPaletteIsLight =
             lightWindow.lightnessF() > lightText.lightnessF();
+        // Qt's Windows platform plugin accepts and applies the requested
+        // scheme even in a non-interactive Windows Server session, but that
+        // session can keep returning its fixed light system palette. Cocoa's
+        // effective appearance is available on the hosted macOS runners, so
+        // keep the stronger palette assertion there. The application-owned
+        // editor/preview colors are verified independently on every platform.
+        const bool requirePaletteMatch =
+            QGuiApplication::platformName() == QStringLiteral("cocoa");
 
         if ((darkScheme != Qt::ColorScheme::Dark)
             || (lightScheme != Qt::ColorScheme::Light)
-            || !darkPaletteIsDark
-            || !lightPaletteIsLight) {
+            || (requirePaletteMatch
+                && (!darkPaletteIsDark || !lightPaletteIsLight))) {
             fprintf(stderr,
                 "color-schemes-failed platform=%s dark=%d palette=%s/%s light=%d palette=%s/%s\n",
                 qPrintable(QGuiApplication::platformName()),
