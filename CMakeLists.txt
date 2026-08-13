@@ -114,7 +114,6 @@ if(WIN32)
 elseif(APPLE)
     # Likewise, package the known ICNS explicitly. The previous ECM-generated
     # source did not survive into the final Craft DMG application bundle.
-    set(MACOSX_BUNDLE_ICON_FILE ghostwriter.icns)
     set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/ghostwriter.icns
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -138,22 +137,28 @@ endif()
 if(APPLE)
     string(TIMESTAMP CURRENT_YEAR "%Y")
 
-    set_property(
-        TARGET ghostwriter
-        PROPERTY MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/MacOSBundleInfo.plist.in
+    # CMake only substitutes these documented values from target properties
+    # (or variables in the directory where the target was created). This
+    # target lives in src/, so parent-directory variables silently produced
+    # empty plist values in the packaged application. Set every value on the
+    # target itself so both Craft macOS architectures receive the same plist.
+    set_target_properties(ghostwriter PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/MacOSBundleInfo.plist.in
+        MACOSX_BUNDLE_ICON_FILE "ghostwriter.icns"
+        MACOSX_BUNDLE_GUI_IDENTIFIER
+            "io.github.mr_drinking.ghostwriter-mojikumi"
+        MACOSX_BUNDLE_BUNDLE_NAME "Ghostwriter Mojikumi"
+        MACOSX_BUNDLE_INFO_STRING
+            "Ghostwriter Mojikumi — Unofficial Fork"
+        MACOSX_BUNDLE_LONG_VERSION_STRING
+            "Ghostwriter Mojikumi ${MOJIKUMI_RELEASE_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${RELEASE_SERVICE_VERSION}"
+        # CFBundleVersion must use Apple's numeric syntax.
+        MACOSX_BUNDLE_BUNDLE_VERSION "${RELEASE_SERVICE_VERSION}"
+        MACOSX_BUNDLE_COPYRIGHT
+            "2014-${CURRENT_YEAR} the ghostwriter authors; fork modifications 2026 Mr-Drinking"
     )
-
-    # These are substituted by CMake into MacOSBundleInfo.plist.in.
-    set(MACOSX_BUNDLE_DISPLAY_NAME "Ghostwriter Mojikumi — Unofficial Fork")
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.mr_drinking.ghostwriter-mojikumi")
-    set(MACOSX_BUNDLE_BUNDLE_NAME "Ghostwriter Mojikumi")
-    set(MACOSX_BUNDLE_INFO_STRING "Ghostwriter Mojikumi — Unofficial Fork")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "Ghostwriter Mojikumi ${MOJIKUMI_RELEASE_VERSION}")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${RELEASE_SERVICE_VERSION}")
-    # CFBundleVersion must use Apple's numeric syntax; the branded fork
-    # version remains visible through the long version string and releases.
-    set(MACOSX_BUNDLE_BUNDLE_VERSION "${RELEASE_SERVICE_VERSION}")
-    set(MACOSX_BUNDLE_COPYRIGHT "2014-${CURRENT_YEAR} the ghostwriter authors; fork modifications 2026 Mr-Drinking")
 endif()
 
 install(TARGETS ghostwriter ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

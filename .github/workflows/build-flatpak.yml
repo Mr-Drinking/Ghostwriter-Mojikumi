@@ -82,7 +82,9 @@ jobs:
             test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
           '
           for locale in zh_CN ja_JP ko_KR zh_TW zh_HK; do
-            flatpak run --command=ghostwriter "${APP_ID}" \
+            flatpak run --env=QT_QPA_PLATFORM=offscreen \
+              --env=QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu \
+              --command=ghostwriter "${APP_ID}" \
               --verify-bundled-font "${locale}" | tee /tmp/mojikumi-font-check.log
             grep -F 'bundled-font-ok' /tmp/mojikumi-font-check.log
           done

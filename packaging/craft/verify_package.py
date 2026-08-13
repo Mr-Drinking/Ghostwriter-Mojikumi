@@ -258,6 +258,22 @@ def verify_macos(root: Path, expected_version: str) -> None:
 
     with info_path.open("rb") as info_file:
         info = plistlib.load(info_file)
+    expected_metadata = {
+        "CFBundleIdentifier": "io.github.mr_drinking.ghostwriter-mojikumi",
+        "CFBundleDisplayName": "Ghostwriter Mojikumi — Unofficial Fork",
+        "CFBundleName": "Ghostwriter Mojikumi",
+        "CFBundleShortVersionString": expected_version,
+        "CFBundleVersion": expected_version,
+    }
+    for key, expected_value in expected_metadata.items():
+        actual_value = info.get(key)
+        if actual_value != expected_value:
+            raise RuntimeError(
+                f"Unexpected {key} in {info_path}: "
+                f"{actual_value!r}, expected {expected_value!r}"
+            )
+    print("Verified macOS bundle identity and version metadata")
+
     executable_name = info.get("CFBundleExecutable")
     if not executable_name:
         raise RuntimeError(f"CFBundleExecutable is missing from {info_path}")

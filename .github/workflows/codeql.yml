@@ -28,10 +28,10 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@df559355d593f76b3f2e14730572699cc5db7a48 # v3
+        uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
         with:
           languages: c-cpp
           build-mode: none
 
       - name: Analyze
-        uses: github/codeql-action/analyze@df559355d593f76b3f2e14730572699cc5db7a48 # v3
+        uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3
