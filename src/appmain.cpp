@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QDate>
 #include <QDateTime>
+#include <QFileInfo>
 #include <QLibraryInfo>
 #include <QPair>
 #include <QLocale>
