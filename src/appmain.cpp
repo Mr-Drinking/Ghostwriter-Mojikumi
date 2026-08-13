@@ -85,20 +85,26 @@ int main(int argc, char *argv[])
     qApp->installEventFilter(KToolTipHelper::instance());
 
 #if defined(Q_OS_LINUX)
-    QGuiApplication::setDesktopFileName("ghostwriter");
+    QGuiApplication::setDesktopFileName(
+        "io.github.mr_drinking.ghostwritermojikumi");
 #endif
 
-    KAboutData aboutData("ghostwriter",
-                    QCoreApplication::translate("main", "ghostwriter"),
+    KAboutData aboutData("ghostwritermojikumi",
+                    QCoreApplication::translate("main",
+                        "Ghostwriter Mojikumi — Unofficial Fork"),
                     APPVERSION);
 
-    aboutData.setOrganizationDomain("kde.org");
+    aboutData.setOrganizationDomain("mr_drinking.github.io");
     aboutData.setShortDescription(QCoreApplication::translate("main",
-        "A markdown editor"));
+        "An unofficial ghostwriter fork with CJK mojikumi support"));
 
-    aboutData.setOtherText("<img src=\":/resources/banner.png\">");
     aboutData.addAuthor("Megan Conkle", "Developer",
         "megan.conkle@kdemail.net");
+    aboutData.addCredit("Mr-Drinking",
+        QCoreApplication::translate("main",
+            "Maintainer of this unofficial fork and its mojikumi changes"),
+        QString(),
+        "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi");
     aboutData.addCredit("Graeme Gott",
         QCoreApplication::translate("main",
             "FocusWriter developer, whose Qt code mentored me"),
@@ -135,12 +141,34 @@ int main(int argc, char *argv[])
             "A JavaScript display engine for mathematics"),
         QString(),
         "https://www.mathjax.org/");
+    aboutData.addComponent("Ghostwriter Mojikumi CJK",
+        QCoreApplication::translate("main",
+            "An SIL Open Font License 1.1 Modified Version derived from "
+            "the AOSP Noto Sans CJK static collection. This fork extracts "
+            "the complete SC face without Unicode subsetting and changes "
+            "its naming metadata to use a private family name; the "
+            "AOSP source includes the chws and vchw OpenType features."),
+        QString(),
+        "https://android.googlesource.com/platform/external/noto-fonts/+/aa96a71129acdb7ad8005ab5de269cb506d29655/notosanscjk/");
     aboutData.setLicense(KAboutLicense::GPL_V3);
     aboutData.setCopyrightStatement(QCoreApplication::translate("main",
-        "Copyright 2014-%1 The ghostwriter team")
+        "Copyright 2014-%1 The ghostwriter team\n"
+        "Fork modifications copyright 2026 Mr-Drinking")
             .arg(QDateTime::currentDateTime().date().year()));
-    aboutData.setHomepage("https://ghostwriter.kde.org");
-    aboutData.setDesktopFileName("org.kde.ghostwriter");
+    aboutData.setOtherText(
+        QStringLiteral("<img src=\":/resources/banner.png\"><p>")
+        + QCoreApplication::translate("main",
+            "Unofficial fork of KDE ghostwriter, based on commit "
+            "db9690507e9ba9194af4ee0dbad66dc4b1507389. Modified on "
+            "2026-08-13 to add CJK mojikumi support. This is not an "
+            "official KDE release.")
+        + QStringLiteral("</p>"));
+    aboutData.setHomepage(
+        "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi");
+    aboutData.setBugAddress(
+        "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/issues");
+    aboutData.setDesktopFileName(
+        "io.github.mr_drinking.ghostwritermojikumi");
 
     // Set the application metadata.
     KAboutData::setApplicationData(aboutData);
@@ -155,7 +183,7 @@ int main(int argc, char *argv[])
     QCommandLineParser clParser;
     aboutData.setupCommandLine(&clParser);
     clParser.setApplicationDescription(QCoreApplication::translate("main",
-        "Welcome to ghostwriter!"));
+        "Welcome to Ghostwriter Mojikumi — Unofficial Fork!"));
     clParser.addPositionalArgument("file",
         QCoreApplication::translate("main", "(Optional) File to open."));
 

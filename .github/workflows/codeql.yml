@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - mojikumi-26.08
+  pull_request:
+  schedule:
+    - cron: "34 8 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: c-cpp
+          build-mode: none
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+

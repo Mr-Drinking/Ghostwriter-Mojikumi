@@ -46,6 +46,7 @@
 #include "markdowneditor.h"
 #include "markdownhighlighter.h"
 #include "markdownstates.h"
+#include "mojikumidecorator.h"
 
 namespace ghostwriter
 {
@@ -94,6 +95,7 @@ public:
 
     MarkdownDocument *textDocument;
     MarkdownHighlighter *highlighter;
+    MojikumiDecorator *mojikumiDecorator;
     QGridLayout *preferredLayout;
     bool autoMatchEnabled;
     bool bulletPointCyclingEnabled;
@@ -290,6 +292,13 @@ MarkdownEditor::MarkdownEditor
     connect(this, SIGNAL(selectionChanged()), this, SLOT(onSelectionChanged()));
 
     d->highlighter = new MarkdownHighlighter(this, colors);
+    d->mojikumiDecorator = new MojikumiDecorator(this);
+    connect(
+        d->highlighter,
+        &MarkdownHighlighter::blockHighlighted,
+        d->mojikumiDecorator,
+        &MojikumiDecorator::scheduleBlock,
+        Qt::QueuedConnection);
 
     d->typingPausedSignalSent = true;
     d->typingHasPaused = true;
@@ -697,6 +706,7 @@ void MarkdownEditor::setFont(const QString &family, double pointSize)
     Q_D(MarkdownEditor);
     
     QFont font(family, pointSize);
+    font.setFeature("chws", 1);
     QPlainTextEdit::setFont(font);
     d->highlighter->setFont(family, pointSize);
     setTabulationWidth(d->tabWidth);
@@ -764,6 +774,7 @@ void MarkdownEditor::setupPaperMargins()
     }
 
     this->setViewportMargins(margin, 20, margin, 0);
+    d->mojikumiDecorator->scheduleAll();
 }
 
 QVariant MarkdownEditor::inputMethodQuery(Qt::InputMethodQuery query) const

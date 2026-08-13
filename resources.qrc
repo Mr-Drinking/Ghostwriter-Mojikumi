@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file alias="fonts/GhostwriterMojikumiCJKsc-Regular.otf">resources/fonts/GhostwriterMojikumiCJKsc-Regular.otf</file>
         <file>resources/preview.css</file>
         <file>resources/preview.html</file>
         <file>resources/widgets.qss</file>

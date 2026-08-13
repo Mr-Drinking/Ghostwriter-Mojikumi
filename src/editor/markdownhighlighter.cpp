@@ -113,6 +113,7 @@ MarkdownHighlighter::MarkdownHighlighter
     font.setItalic(false);
     font.setPointSizeF(12.0);
     font.setStyleStrategy(QFont::PreferAntialias);
+    font.setFeature("chws", 1);
     d->defaultFormat.setFont(font);
     d->defaultFormat.setForeground(QBrush(d->colors.foreground));
 }
@@ -197,6 +198,8 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
                     && (MarkdownStatePipeTableDivider == (currentBlockState() & MarkdownStateMask))))) {
         emit highlightBlockAtPosition(currentBlock().previous().position());
     }
+
+    emit blockHighlighted(currentBlock().position());
 }
 
 void MarkdownHighlighter::increaseFontSize()
@@ -257,6 +260,7 @@ void MarkdownHighlighter::setFont(const QString &fontFamily, const double fontSi
     font.setWeight(QFont::Normal);
     font.setItalic(false);
     font.setPointSizeF(fontSize);
+    font.setFeature("chws", 1);
     d->defaultFormat.setFont(font);
 
     rehighlight();

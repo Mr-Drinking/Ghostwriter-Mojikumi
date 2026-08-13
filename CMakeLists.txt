@@ -20,7 +20,7 @@ message("Generating makefile for ${CMAKE_BUILD_TYPE} build...")
 
 # KF6 only
 set(QT_MAJOR_VERSION 6)
-set(QT_MIN_VERSION "6.5.0")
+set(QT_MIN_VERSION "6.11.0")
 set(KF_MAJOR_VERSION 6)
 set(KF_DEP_VERSION "6.0.0")
 set(KF_MIN_VERSION "6.0.0")
@@ -35,6 +35,7 @@ set(RELEASE_SERVICE_VERSION_MAJOR "26")
 set(RELEASE_SERVICE_VERSION_MINOR "08")
 set(RELEASE_SERVICE_VERSION_MICRO "0")
 set(RELEASE_SERVICE_VERSION "${RELEASE_SERVICE_VERSION_MAJOR}.${RELEASE_SERVICE_VERSION_MINOR}.${RELEASE_SERVICE_VERSION_MICRO}")
+set(MOJIKUMI_RELEASE_VERSION "${RELEASE_SERVICE_VERSION}-mojikumi.1")
 
 project(ghostwriter VERSION ${RELEASE_SERVICE_VERSION} LANGUAGES CXX)
 
@@ -113,15 +114,16 @@ if(APPLE)
     )
 
     # These are substituted by CMake into MacOSBundleInfo.plist.in.
-    set(MACOSX_BUNDLE_DISPLAY_NAME "ghostwriter")
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "org.kde.ghostwriter")
-    set(MACOSX_BUNDLE_BUNDLE_NAME "ghostwriter")
-    set(MACOSX_BUNDLE_DISPLAY_NAME "ghostwriter")
-    set(MACOSX_BUNDLE_INFO_STRING "ghostwriter - A Markdown Editor")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "ghostwriter ${RELEASE_SERVICE_VERSION}")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${RELEASE_SERVICE_VERSION_MAJOR}.${RELEASE_SERVICE_VERSION_MINOR}")
+    set(MACOSX_BUNDLE_DISPLAY_NAME "Ghostwriter Mojikumi — Unofficial Fork")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.mr_drinking.ghostwritermojikumi")
+    set(MACOSX_BUNDLE_BUNDLE_NAME "Ghostwriter Mojikumi")
+    set(MACOSX_BUNDLE_INFO_STRING "Ghostwriter Mojikumi — Unofficial Fork")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "Ghostwriter Mojikumi ${MOJIKUMI_RELEASE_VERSION}")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${RELEASE_SERVICE_VERSION}")
+    # CFBundleVersion must use Apple's numeric syntax; the branded fork
+    # version remains visible through the long version string and releases.
     set(MACOSX_BUNDLE_BUNDLE_VERSION "${RELEASE_SERVICE_VERSION}")
-    set(MACOSX_BUNDLE_COPYRIGHT "2014-${CURRENT_YEAR} the ghostwriter authors")
+    set(MACOSX_BUNDLE_COPYRIGHT "2014-${CURRENT_YEAR} the ghostwriter authors; fork modifications 2026 Mr-Drinking")
 endif()
 
 install(TARGETS ghostwriter ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
@@ -133,13 +135,30 @@ ecm_install_icons(
 )
 
 install(
-    PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/org.kde.ghostwriter.desktop
+    PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwritermojikumi.desktop
     DESTINATION ${KDE_INSTALL_APPDIR}
 )
 
 install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/org.kde.ghostwriter.metainfo.xml
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
     DESTINATION ${KDE_INSTALL_METAINFODIR}
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/ABOUT.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md
+    DESTINATION ${KDE_INSTALL_DATADIR}/ghostwriter-mojikumi
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES/
+    DESTINATION ${KDE_INSTALL_DATADIR}/ghostwriter-mojikumi/LICENSES
+)
+
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/COPYING
+    DESTINATION ${KDE_INSTALL_DATADIR}/ghostwriter-mojikumi
 )
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

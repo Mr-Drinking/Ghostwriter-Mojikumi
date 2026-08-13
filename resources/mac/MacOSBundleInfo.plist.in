@@ -1,11 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 SPDX-FileCopyrightText: 2009-2014 Graeme Gott <graeme@gottcode.org>
 SPDX-FileCopyrightText: 2021-2022 Megan Conkle <megan.conkle@kdemail.net>
 
 SPDX-License-Identifier: GPL-3.0-or-later
 -->
-
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -25,8 +24,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string>????</string>
     <key>CFBundleExecutable</key>
     <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
+    <key>CFBundleDisplayName</key>
+    <string>${MACOSX_BUNDLE_DISPLAY_NAME}</string>
     <key>CFBundleIdentifier</key>
-    <string>io.github.wereturtle.ghostwriter</string>
+    <string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
     <key>CFBundleShortVersionString</key>
     <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
     <key>CFBundleVersion</key>

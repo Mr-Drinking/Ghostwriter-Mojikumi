@@ -84,6 +84,13 @@ public:
 
 signals:
     /**
+     * Emitted after highlightBlock() has prepared the formats for a block.
+     * Queued listeners run after QSyntaxHighlighter has committed them to the
+     * QTextLayout.
+     */
+    void blockHighlighted(int position);
+
+    /**
      * FOR INTERNAL USE ONLY
      *
      * This signal is used internally to restart highlighting on the

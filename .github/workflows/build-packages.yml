@@ -1,0 +1,200 @@
+# SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Build packages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - mojikumi-26.08
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: craft-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CRAFT_REVISION: d12d8aa71729806c06902afc3426a22b3bea5088
+  CRAFT_KF_VERSION: 6.28.0
+  CRAFT_PACKAGE: ghostwriter-mojikumi/ghostwriter-mojikumi
+  CRAFT_QT_VERSION: 6.11.1
+  PYTHONUTF8: "1"
+
+jobs:
+  package:
+    name: ${{ matrix.artifact }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            artifact: ghostwriter-mojikumi-windows-x86_64-portable
+            expected_abi: windows-cl-msvc2022-x86_64
+            package_type: PortablePackager
+            archive_type: zip
+          - runner: macos-15-intel
+            artifact: ghostwriter-mojikumi-macos-x86_64-dmg
+            expected_abi: macos-clang-x86_64
+            package_type: MacDMGPackager
+            archive_type: ""
+          - runner: macos-15
+            artifact: ghostwriter-mojikumi-macos-arm64-dmg
+            expected_abi: macos-clang-arm64
+            package_type: MacDMGPackager
+            archive_type: ""
+          - runner: ubuntu-24.04
+            artifact: ghostwriter-mojikumi-linux-x86_64-appimage
+            expected_abi: linux-gcc-x86_64
+            package_type: AppImagePackager
+            archive_type: ""
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Select Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Linux host prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            appstream \
+            build-essential \
+            bison \
+            flex \
+            fuse3 \
+            gperf \
+            libatspi2.0-dev \
+            libcap-dev \
+            libdbus-1-dev \
+            libegl1-mesa-dev \
+            libfontconfig1-dev \
+            libfuse2t64 \
+            libgl-dev \
+            libglib2.0-dev \
+            libnss3-dev \
+            libpulse-dev \
+            libssl-dev \
+            libudev-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxcb-cursor-dev \
+            libxcb-glx0-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-randr0-dev \
+            libxcb-render-util0-dev \
+            libxcb-shape0-dev \
+            libxcb-shm0-dev \
+            libxcb-sync-dev \
+            libxcb-util-dev \
+            libxcb-xfixes0-dev \
+            libxcb-xinerama0-dev \
+            libxcb-xkb-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libxrender-dev \
+            ninja-build \
+            patchelf \
+            pkg-config \
+            python3-pip
+
+      - name: Bootstrap KDE Craft
+        shell: bash
+        run: |
+          export MSYS2_ARG_CONV_EXCL="*"
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import urlretrieve
+
+          urlretrieve(
+              "https://invent.kde.org/packaging/craft/-/raw/"
+              "d12d8aa71729806c06902afc3426a22b3bea5088/"
+              "setup/CraftBootstrap.py",
+              Path("CraftBootstrap.py"),
+          )
+          PY
+          python CraftBootstrap.py \
+            --prefix "${{ runner.temp }}/CraftRoot" \
+            --branch "${CRAFT_REVISION}" \
+            --use-defaults
+
+      - name: Configure Craft for the checked-out source
+        shell: bash
+        run: |
+          export MSYS2_ARG_CONV_EXCL="*"
+          python packaging/craft/configure_craft.py \
+            --settings "${{ runner.temp }}/CraftRoot/etc/CraftSettings.ini" \
+            --expected-abi "${{ matrix.expected_abi }}" \
+            --blueprints "${{ github.workspace }}/packaging/craft/blueprints" \
+            --destination "${{ github.workspace }}/artifacts" \
+            --package-type "${{ matrix.package_type }}" \
+            --archive-type "${{ matrix.archive_type }}"
+
+      - name: Build checked-out source with Qt 6.11 and KF6
+        shell: bash
+        run: |
+          export MSYS2_ARG_CONV_EXCL="*"
+          python -c "from pathlib import Path; Path('artifacts').mkdir(exist_ok=True)"
+          python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" \
+            --ci-mode \
+            --output-on-failure \
+            --buildtype Release \
+            --options "libs/qt6.version=${CRAFT_QT_VERSION}" \
+            --options "kde/frameworks.version=${CRAFT_KF_VERSION}" \
+            --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
+            "${CRAFT_PACKAGE}"
+
+      - name: Create package
+        shell: bash
+        run: |
+          export MSYS2_ARG_CONV_EXCL="*"
+          python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" \
+            --ci-mode \
+            --output-on-failure \
+            --buildtype Release \
+            --options "libs/qt6.version=${CRAFT_QT_VERSION}" \
+            --options "kde/frameworks.version=${CRAFT_KF_VERSION}" \
+            --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
+            --package \
+            "${CRAFT_PACKAGE}"
+
+      - name: List produced files
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path("artifacts")
+          for path in sorted(root.rglob("*")):
+              if path.is_file():
+                  print(f"{path} ({path.stat().st_size} bytes)")
+          PY
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14

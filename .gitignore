@@ -72,4 +72,10 @@ Makefile*
 # Mac finder stub
 .DS_Store
 
+# Local upstream font research downloads. The selected, hash-pinned font is
+# vendored under resources/fonts instead.
+/font-source/
 
+# Python bytecode created while validating packaging/font tools.
+**/__pycache__/
+*.py[cod]

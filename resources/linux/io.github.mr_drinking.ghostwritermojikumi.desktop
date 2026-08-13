@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Ghostwriter Mojikumi — Unofficial Fork
+GenericName=Markdown Editor
+Comment=Unofficial ghostwriter fork with CJK mojikumi support
+Icon=ghostwriter
+TryExec=ghostwriter
+Exec=ghostwriter %f
+Terminal=false
+MimeType=text/plain;text/markdown;text/x-markdown;
+Categories=Qt;Office;WordProcessor;
+Keywords=Markdown;editor;document;mojikumi;CJK;punctuation;writing;

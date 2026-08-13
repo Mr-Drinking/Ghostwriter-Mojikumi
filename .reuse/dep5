@@ -12,6 +12,27 @@ Copyright: 2014-2022 Megan Conkle <megan.conkle@kdemail.net>
            2022-present KDE
 License: GPL-3.0-or-later
 
+Files: resources/fonts/GhostwriterMojikumiCJKsc-Regular.otf
+Copyright: 2014-2021 Adobe (http://www.adobe.com/).
+License: OFL-1.1
+
+# These entries close pre-existing metadata gaps in the upstream snapshot.
+Files: icons.qrc
+       resources.qrc
+       src/settings/preferencesdialog.ui
+       src/settings/preferencesdialog_ui.py
+Copyright: 2014-2026 Megan Conkle <megan.conkle@kdemail.net>
+           2022-present KDE
+License: GPL-3.0-or-later
+
+Files: icons/match-case.svg
+Copyright: Google, Inc. <https://google.com>
+License: Apache-2.0
+
+Files: icons/redo.svg
+Copyright: Fonticons, Inc. <https://fontawesome.com>
+License: OFL-1.1
+
 Files: translations/*
 Copyright: 2014-2022 Megan Conkle <megan.conkle@kdemail.net>
            2022-present KDE

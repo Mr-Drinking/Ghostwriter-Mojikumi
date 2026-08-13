@@ -122,8 +122,18 @@ MainWindow::MainWindow(const QString &filePath, QWidget *parent)
     connect(appSettings, &AppSettings::displayTimeInFullScreenChanged, this, &MainWindow::toggleDisplayTimeInFullScreen);
     connect(appSettings, &AppSettings::editorWidthChanged, this, &MainWindow::changeEditorWidth);
     connect(appSettings, &AppSettings::interfaceStyleChanged, this, &MainWindow::changeInterfaceStyle);
-    connect(appSettings, &AppSettings::previewTextFontChanged, this, &MainWindow::applyTheme);
-    connect(appSettings, &AppSettings::previewCodeFontChanged, this, &MainWindow::applyTheme);
+    connect(appSettings, &AppSettings::editorFontChanged, this, [this](const QFont &font) {
+        editor->setFont(font.family(), font.pointSize());
+        applyTheme();
+    });
+    connect(appSettings, &AppSettings::fontFallbackWarningRequired, this, [this](const QString &fontFamily) {
+        MessageBoxHelper::warning(
+            this,
+            tr("The selected font may change Chinese punctuation spacing."),
+            tr("Only the bundled Ghostwriter Mojikumi CJK SC font is tested with the required punctuation-spacing features. "
+               "%1 may use fallback glyphs or different spacing in the editor and preview.")
+                .arg(fontFamily));
+    });
 
     connect(documentManager, &DocumentManager::documentLoaded, documentManager, [this]() {
         sessionStats->startNewSession(documentStats->wordCount());
@@ -551,8 +561,7 @@ void MainWindow::changeFont()
         SimpleFontDialog::font(&success, editor->font(), this);
 
     if (success) {
-        editor->setFont(font.family(), font.pointSize());
-        appSettings->setEditorFont(font);
+        appSettings->setUnifiedFont(font);
     }
 }
 
@@ -560,7 +569,7 @@ void MainWindow::onFontSizeChanged(int size)
 {
     QFont font = editor->font();
     font.setPointSize(size);
-    appSettings->setEditorFont(font);
+    appSettings->setUnifiedFont(font);
 }
 
 void MainWindow::onSetLocale()

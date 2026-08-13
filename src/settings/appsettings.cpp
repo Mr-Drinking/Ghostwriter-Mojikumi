@@ -1,11 +1,10 @@
-﻿/*
+/*
  * SPDX-FileCopyrightText: 2014-2026 Megan Conkle <megan.conkle@kdemail.net>
  * SPDX-FileCopyrightText: 2014 Aurélien Gâteau <agateau@kde.org>
  * SPDX-FileCopyrightText: 2015 Alex Merry <alex.merry@kde.org>
  * SPDX-FileCopyrightText: 2026 Nate Peterson
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <QApplication>
 #include <QDebug>
@@ -56,8 +55,6 @@ constexpr auto GW_SIDEBAR_OPEN_KEY{"Window/sidebarOpen"};
 constexpr auto GW_HTML_PREVIEW_OPEN_KEY{"Preview/htmlPreviewOpen"};
 constexpr auto GW_LAST_USED_EXPORTER_KEY{"Preview/lastUsedExporter"};
 constexpr auto GW_LAST_USED_EXPORTER_PARAMS_KEY{"Preview/lastUsedExporterParams"};
-constexpr auto GW_PREVIEW_TEXT_FONT_KEY{"Preview/textFont"};
-constexpr auto GW_PREVIEW_CODE_FONT_KEY{"Preview/codeFont"};
 constexpr auto GW_BACKUP_LOCATION_KEY{"Backup/location"};
 }
 
@@ -107,6 +104,7 @@ public:
     QFont editorFont;
     QFont previewTextFont;
     QFont previewCodeFont;
+    bool fontFallbackWarningIssued = false;
     QString autoMatchedCharFilter;
     QString locale;
     QStringList translationList;
@@ -147,8 +145,6 @@ void AppSettings::store()
     appSettings.setValue(constants::GW_EDITOR_WIDTH_KEY, QVariant(d->editorWidth));
     appSettings.setValue(constants::GW_FOCUS_MODE_KEY, QVariant(d->focusMode));
     appSettings.setValue(constants::GW_EDITOR_FONT_KEY, QVariant(d->editorFont.toString()));
-    appSettings.setValue(constants::GW_PREVIEW_TEXT_FONT_KEY, QVariant(d->previewTextFont.toString()));
-    appSettings.setValue(constants::GW_PREVIEW_CODE_FONT_KEY, QVariant(d->previewCodeFont.toString()));
     appSettings.setValue(constants::GW_HIDE_MENU_BAR_IN_FULL_SCREEN_KEY, QVariant(d->hideMenuBarInFullScreenEnabled));
     appSettings.setValue(constants::GW_INTERFACE_STYLE_KEY, QVariant(d->interfaceStyle));
     appSettings.setValue(constants::GW_BLOCKQUOTE_STYLE_KEY, QVariant(d->italicizeBlockquotes));
@@ -236,45 +232,46 @@ QString AppSettings::backupLocation() const
 QFont AppSettings::editorFont() const
 {
     Q_D(const AppSettings);
-    
-    return d->editorFont;
-}
 
-void AppSettings::setEditorFont(const QFont &font)
-{
-    Q_D(AppSettings);
-    
-    d->editorFont = font;
+    return d->editorFont;
 }
 
 QFont AppSettings::previewTextFont() const
 {
     Q_D(const AppSettings);
-    
-    return d->previewTextFont;
-}
 
-void AppSettings::setPreviewTextFont(const QFont &font)
-{
-    Q_D(AppSettings);
-    
-    d->previewTextFont = font;
-    emit previewTextFontChanged(font);
+    return d->previewTextFont;
 }
 
 QFont AppSettings::previewCodeFont() const
 {
     Q_D(const AppSettings);
-    
+
     return d->previewCodeFont;
 }
 
-void AppSettings::setPreviewCodeFont(const QFont &font)
+bool AppSettings::setUnifiedFont(const QFont &font)
 {
     Q_D(AppSettings);
-    
-    d->previewCodeFont = font;
-    emit previewCodeFontChanged(font);
+
+    QFont unifiedFont(font);
+    const bool usesBundledFont =
+        unifiedFont.family().compare(BUNDLED_CJK_FONT_FAMILY, Qt::CaseInsensitive) == 0;
+
+    d->editorFont = unifiedFont;
+    d->previewTextFont = unifiedFont;
+    d->previewCodeFont = unifiedFont;
+
+    // MainWindow treats editorFontChanged as the single update trigger and
+    // rebuilds both preview font variables once.
+    emit editorFontChanged(unifiedFont);
+
+    if (!usesBundledFont && !d->fontFallbackWarningIssued) {
+        d->fontFallbackWarningIssued = true;
+        emit fontFallbackWarningRequired(unifiedFont.family());
+    }
+
+    return usesBundledFont;
 }
 
 int AppSettings::tabWidth() const
@@ -703,6 +700,17 @@ AppSettings::AppSettings()
 {
     Q_D(AppSettings);
 
+    const int bundledFontId = QFontDatabase::addApplicationFont(
+        QStringLiteral(":/fonts/GhostwriterMojikumiCJKsc-Regular.otf"));
+
+    const bool bundledFontAvailable = (bundledFontId >= 0)
+        && QFontDatabase::applicationFontFamilies(bundledFontId)
+               .contains(BUNDLED_CJK_FONT_FAMILY);
+
+    if (!bundledFontAvailable) {
+        qCritical() << "Could not register the bundled CJK font.";
+    }
+
     // Determine available translation locales.
     QStringList dataPaths =
         QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
@@ -773,8 +781,10 @@ AppSettings::AppSettings()
         << "Courier New"
         << "Courier";
 
-    QString monospaceFont = QFont(d->firstAvailableFont(preferredMonospaceFonts), 12).toString();
-    QString variableFont = QFont("Noto Serif", 12).toString();
+    const QString defaultFontFamily = bundledFontAvailable
+        ? BUNDLED_CJK_FONT_FAMILY
+        : d->firstAvailableFont(preferredMonospaceFonts);
+    QString unifiedFont = QFont(defaultFontFamily, 12).toString();
 
     // Last but not least, load some basic settings from the configuration file,
     // but only those that need special validation.  Things like window
@@ -784,9 +794,16 @@ AppSettings::AppSettings()
 
     d->autoSaveEnabled = appSettings.value(constants::GW_AUTOSAVE_KEY, QVariant(true)).toBool();
     d->backupFileEnabled = appSettings.value(constants::GW_BACKUP_FILE_KEY, QVariant(true)).toBool();
-    d->editorFont.fromString(appSettings.value(constants::GW_EDITOR_FONT_KEY, QVariant(monospaceFont)).toString());
-    d->previewTextFont.fromString(appSettings.value(constants::GW_PREVIEW_TEXT_FONT_KEY, QVariant(variableFont)).toString());
-    d->previewCodeFont.fromString(appSettings.value(constants::GW_PREVIEW_CODE_FONT_KEY, QVariant(monospaceFont)).toString());
+    QFont storedFont;
+    const bool storedFontParsed = storedFont.fromString(
+        appSettings.value(constants::GW_EDITOR_FONT_KEY, QVariant(unifiedFont)).toString());
+    if (!storedFontParsed
+        || !QFontDatabase::families().contains(storedFont.family())) {
+        storedFont.fromString(unifiedFont);
+    }
+    d->editorFont = storedFont;
+    d->previewTextFont = storedFont;
+    d->previewCodeFont = storedFont;
     d->tabWidth = appSettings.value(constants::GW_TAB_WIDTH_KEY, QVariant(DEFAULT_TAB_WIDTH)).toInt();
 
     QString defaultBackupLocation = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QDir::separator() + "backups" + QDir::separator();

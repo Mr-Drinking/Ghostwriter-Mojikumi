@@ -9,7 +9,7 @@ set(UI_FILES settings/preferencesdialog.ui)
 
 add_executable(ghostwriter ../resources.qrc ../icons.qrc ${UI_FILES})
 
-target_compile_definitions(ghostwriter PRIVATE APPVERSION="${RELEASE_SERVICE_VERSION}")
+target_compile_definitions(ghostwriter PRIVATE APPVERSION="${MOJIKUMI_RELEASE_VERSION}")
 
 target_include_directories(ghostwriter PUBLIC
     "${PROJECT_BINARY_DIR}"
@@ -26,6 +26,7 @@ target_sources(ghostwriter PRIVATE
     editor/markdowndocument.cpp
     editor/markdowneditor.cpp
     editor/markdownhighlighter.cpp
+    editor/mojikumidecorator.cpp
     editor/textblockdata.h
     export/cmarkgfmexporter.cpp
     export/commandlineexporter.cpp
@@ -134,4 +135,3 @@ set_target_properties(ghostwriter PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
-

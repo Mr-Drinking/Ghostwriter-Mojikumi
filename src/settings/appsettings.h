@@ -31,6 +31,8 @@ class AppSettings : public QObject
     Q_DECLARE_PRIVATE(AppSettings)
 
 public:
+    inline static const QString BUNDLED_CJK_FONT_FAMILY =
+        QStringLiteral("Ghostwriter Mojikumi CJK SC");
     static const int MIN_TAB_WIDTH = 1;
     static const int MAX_TAB_WIDTH = 8;
     static const int DEFAULT_TAB_WIDTH = 4;
@@ -56,15 +58,20 @@ public:
     Q_SIGNAL void backupFileChanged(bool enabled);
 
     QFont editorFont() const;
-    void setEditorFont(const QFont &font);
+    Q_SIGNAL void editorFontChanged(const QFont &font);
 
     QFont previewTextFont() const;
-    void setPreviewTextFont(const QFont &font);
-    Q_SIGNAL void previewTextFontChanged(const QFont &font);
 
     QFont previewCodeFont() const;
-    void setPreviewCodeFont(const QFont &font);
-    Q_SIGNAL void previewCodeFontChanged(const QFont &font);
+    Q_SIGNAL void fontFallbackWarningRequired(const QString &fontFamily);
+
+    /**
+     * Uses one font family and point size for the editor and both preview
+     * styles.  Returns false when the selected family is not the bundled CJK
+     * font.  The first non-bundled selection also emits a compatibility
+     * warning request.
+     */
+    bool setUnifiedFont(const QFont &font);
 
     int tabWidth() const;
     Q_SLOT void setTabWidth(int width);

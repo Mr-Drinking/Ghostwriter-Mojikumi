@@ -92,55 +92,29 @@ PreviewOptionsDialog::PreviewOptionsDialog(QWidget *parent)
 
     QHBoxLayout *fontLayout = new QHBoxLayout();
 
-    QLineEdit *currentTextFont = new QLineEdit(d->fontToString(d->appSettings->previewTextFont()));
-    currentTextFont->setReadOnly(true);
-    fontLayout->addWidget(currentTextFont);
+    QLineEdit *currentFont = new QLineEdit(d->fontToString(d->appSettings->editorFont()));
+    currentFont->setReadOnly(true);
+    fontLayout->addWidget(currentFont);
 
     QPushButton *chooseButton = new QPushButton(tr("Choose..."));
     fontLayout->addWidget(chooseButton);
 
     connect(chooseButton,
         &QPushButton::clicked,
-        [this, d, currentTextFont]() {
+        [this, d, currentFont]() {
             bool success = false;
 
             QFont font = SimpleFontDialog::font(&success,
-                d->appSettings->previewTextFont(),
+                d->appSettings->editorFont(),
                 this);
 
             if (success) {
-                currentTextFont->setText(d->fontToString(font));
-                d->appSettings->setPreviewTextFont(font);
+                currentFont->setText(d->fontToString(font));
+                d->appSettings->setUnifiedFont(font);
             }
         });
 
-    optionsLayout->addRow(tr("Text Font:"), fontLayout);
-
-    fontLayout = new QHBoxLayout();
-
-    QLineEdit *currentCodeFont = new QLineEdit(d->fontToString(d->appSettings->previewCodeFont()));
-    currentCodeFont->setReadOnly(true);
-    fontLayout->addWidget(currentCodeFont);
-
-    chooseButton = new QPushButton(tr("Choose..."));
-    fontLayout->addWidget(chooseButton);
-
-    connect(chooseButton,
-        &QPushButton::clicked,
-        [this, d, currentCodeFont]() {
-            bool success = false;
-
-            QFont font = SimpleFontDialog::monospaceFont(&success,
-                d->appSettings->previewTextFont(),
-                this);
-
-            if (success) {
-                currentCodeFont->setText(d->fontToString(font));
-                d->appSettings->setPreviewCodeFont(font);
-            }
-        });
-
-    optionsLayout->addRow(tr("Code Font:"), fontLayout);
+    optionsLayout->addRow(tr("Editor and Preview Font:"), fontLayout);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
     buttonBox->addButton(QDialogButtonBox::Close);
