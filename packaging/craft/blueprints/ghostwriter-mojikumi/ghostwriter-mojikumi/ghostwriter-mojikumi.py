@@ -1,9 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
 # SPDX-License-Identifier: BSD-2-Clause
 
+import os
+from pathlib import Path
+
 import info
+import utils
 from CraftCore import CraftCore
 from Package.CMakePackageBase import CMakePackageBase
+from Utils import CodeSign
 
 
 class subinfo(info.infoclass):
@@ -53,37 +58,79 @@ class Package(CMakePackageBase):
             "-DQT_MAJOR_VERSION=6",
         ]
 
-    def preArchive(self):
+    def internalCreatePackage(self, defines):
+        if not super().internalCreatePackage(defines):
+            return False
         if not CraftCore.compiler.isMacOS:
             return True
 
-        # Craft correctly relocates every framework into the outer app's
-        # Contents/Frameworks directory, but its generic fix-up gives binaries
-        # loaded by the nested QtWebEngineProcess helper paths relative to that
-        # helper's executable. Restore the conventional nested-bundle view by
-        # linking helper Contents/Frameworks back to the outer Frameworks dir.
-        helper_contents = (
-            self.archiveDir()
-            / "lib/QtWebEngineCore.framework/Versions/A/Helpers"
-            / "QtWebEngineProcess.app/Contents"
+        app_path = self.getMacAppPath(defines)
+        if not app_path:
+            return False
+
+        # MacBasePackager treats every Mach-O as though it were launched from
+        # the outer Contents/MacOS directory. That is not true for the nested
+        # QtWebEngineProcess helper, and @executable_path is inherited by all
+        # frameworks loaded into that process. Convert every package-internal
+        # framework reference to the equivalent path relative to the Mach-O
+        # that owns it. This covers the helper and all of its transitive Qt,
+        # KF, ICU and GLib dependencies without introducing directory cycles.
+        contents = app_path / "Contents"
+        frameworks = contents / "Frameworks"
+        old_prefix = "@executable_path/../Frameworks/"
+        changed_binary_count = 0
+        changed_reference_count = 0
+
+        binaries = list(
+            utils.filterDirectoryContent(
+                contents,
+                whitelist=lambda entry, root: utils.isBinary(entry.path),
+                blacklist=lambda entry, root: True,
+            )
         )
-        if not helper_contents.is_dir():
+        for binary_name in binaries:
+            binary = Path(binary_name)
+            changes = []
+            loader_frameworks = os.path.relpath(frameworks, binary.parent).replace(
+                os.sep, "/"
+            )
+            for dependency in utils.getLibraryDeps(str(binary)):
+                if dependency.startswith(old_prefix):
+                    changes.append(
+                        (
+                            dependency,
+                            f"@loader_path/{loader_frameworks}/"
+                            + dependency.removeprefix(old_prefix),
+                        )
+                    )
+
+            if not changes:
+                continue
+            command = ["install_name_tool"]
+            for old_reference, new_reference in changes:
+                command += ["-change", old_reference, new_reference]
+            command.append(str(binary))
+            with utils.makeTemporaryWritable(binary):
+                if not utils.system(command):
+                    return False
+            changed_binary_count += 1
+            changed_reference_count += len(changes)
+
+        if changed_reference_count == 0:
             CraftCore.log.error(
-                f"Missing macOS Qt WebEngine helper bundle: {helper_contents}"
+                "No macOS package-internal framework references were rewritten"
             )
             return False
 
-        frameworks_link = helper_contents / "Frameworks"
-        if frameworks_link.exists() or frameworks_link.is_symlink():
-            CraftCore.log.error(
-                f"Unexpected existing Qt WebEngine helper framework path: {frameworks_link}"
-            )
-            return False
+        CraftCore.log.info(
+            "Rewrote %d macOS framework references across %d binaries",
+            changed_reference_count,
+            changed_binary_count,
+        )
 
-        # Six parent traversals from helper Contents arrive at archive/lib,
-        # which MacBasePackager later moves to outer Contents/Frameworks.
-        frameworks_link.symlink_to("../../../../../..", target_is_directory=True)
-        return frameworks_link.is_symlink()
+        # install_name_tool invalidates the signatures produced by Craft's
+        # generic bundler, so sign the complete nested bundle hierarchy again.
+        return CodeSign.signMacApp(app_path)
 
     def createPackage(self):
         self.defines["appname"] = "ghostwriter"
