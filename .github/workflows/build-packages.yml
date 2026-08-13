@@ -110,6 +110,7 @@ jobs:
             libxcb-keysyms1-dev \
             libxcb-randr0-dev \
             libxcb-render-util0-dev \
+            libxcb-res0 \
             libxcb-shape0-dev \
             libxcb-shm0-dev \
             libxcb-sync-dev \
@@ -298,11 +299,44 @@ jobs:
             throw "Installer exited with $($install.ExitCode)"
           }
 
-          $installRoot = Join-Path $env:LOCALAPPDATA "Ghostwriter Mojikumi"
+          # Craft's MultiUser template persists the resolved destination here.
+          # Reading it avoids duplicating NSIS's version-dependent choice of
+          # the per-user Program Files directory.
+          $installKey = "HKCU:\Software\Mr-Drinking\Ghostwriter Mojikumi"
+          $installProperties = Get-ItemProperty `
+            -LiteralPath $installKey `
+            -Name @("Install_Dir", "Install_Mode") `
+            -ErrorAction Stop
+          if ($installProperties.Install_Mode -ne "CurrentUser") {
+            throw "NSIS recorded unexpected install mode: $($installProperties.Install_Mode)"
+          }
+          $installRoot = $installProperties.Install_Dir
+          if ([string]::IsNullOrWhiteSpace($installRoot)) {
+            throw "NSIS did not record an Install_Dir in $installKey"
+          }
+
+          $installRoot = [System.IO.Path]::GetFullPath($installRoot)
+          $localAppDataRoot = [System.IO.Path]::GetFullPath($env:LOCALAPPDATA)
+          $relativeInstallRoot = [System.IO.Path]::GetRelativePath(
+            $localAppDataRoot,
+            $installRoot
+          )
+          if (
+            [System.IO.Path]::IsPathRooted($relativeInstallRoot) -or
+            $relativeInstallRoot -eq "." -or
+            $relativeInstallRoot -eq ".." -or
+            $relativeInstallRoot.StartsWith("..$([System.IO.Path]::DirectorySeparatorChar)")
+          ) {
+            throw "Current-user installer escaped LOCALAPPDATA: $installRoot"
+          }
+
           python packaging/craft/verify_package.py `
             windows `
             $installRoot `
             "${env:MOJIKUMI_VERSION}"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installed-package smoke test exited with $LASTEXITCODE"
+          }
 
           $uninstaller = Join-Path $installRoot "uninstall.exe"
           if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
@@ -319,6 +353,9 @@ jobs:
           Start-Sleep -Seconds 2
           if (Test-Path -LiteralPath (Join-Path $installRoot "bin/ghostwriter.exe")) {
             throw "Uninstaller left the application executable behind"
+          }
+          if (Test-Path -LiteralPath $installKey) {
+            throw "Uninstaller left its application registry key behind"
           }
 
       - name: Smoke-test macOS disk image
