@@ -77,6 +77,13 @@ CHECK_FILE_OFFSET_BITS()
 
 add_executable(${PROGRAM} ${PROGRAM_SOURCES})
 
+# KDE Craft configures application executables as macOS bundles globally.
+# cmark-gfm is a command-line helper, so keeping it as a plain executable also
+# lets its existing RUNTIME install rule remain valid on macOS.
+if(APPLE)
+  set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE FALSE)
+endif()
+
 if(CMARK_SHARED)
   target_link_libraries(${PROGRAM} libcmark-gfm-extensions libcmark-gfm)
 elseif(CMARK_STATIC)

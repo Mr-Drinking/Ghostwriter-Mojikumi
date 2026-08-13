@@ -37,7 +37,10 @@ def main() -> None:
     settings["General"]["KFHostToolingVersion"] = "6"
     settings["Blueprints"]["Locations"] = str(args.blueprints.resolve())
     settings["BlueprintVersions"]["EnableDailyUpdates"] = "False"
-    settings["Compile"]["BuildType"] = "Release"
+    # KDE's hosted Craft binary cache is published as RelWithDebInfo.  Keep
+    # build and package actions on that exact type so the collection packager
+    # reads the same dependency image directories that Craft downloaded.
+    settings["Compile"]["BuildType"] = "RelWithDebInfo"
     settings["Compile"]["UseNinja"] = "True"
     settings["ContinuousIntegration"]["Enabled"] = "True"
     settings["ContinuousIntegration"]["OutputOnFailure"] = "True"

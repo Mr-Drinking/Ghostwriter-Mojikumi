@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+id: io.github.mr_drinking.ghostwritermojikumi
+runtime: org.kde.Platform
+runtime-version: '6.11'
+sdk: org.kde.Sdk
+base: io.qt.qtwebengine.BaseApp
+base-version: '6.11'
+command: ghostwriter
+rename-icon: ghostwriter
+
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --env=QTWEBENGINEPROCESS_PATH=/app/bin/QtWebEngineProcess
+  - --env=QTWEBENGINE_DICTIONARIES_PATH=/app/qtwebengine_dictionaries
+
+cleanup:
+  - /include
+  - /lib/cmake
+  - /lib/pkgconfig
+  - /share/man
+  - '*.a'
+  - '*.la'
+
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
+
+modules:
+  - name: ghostwriter-mojikumi
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DBUILD_TESTING=OFF
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      # This manifest is intended for repository CI and local builds of the
+      # current checkout. A future Flathub submission must replace this with
+      # an immutable release archive and checksum.
+      - type: dir
+        path: ../..
+        skip:
+          - .git
+          - .flatpak
+          - .flatpak-builder
+          - build*
+          - _build

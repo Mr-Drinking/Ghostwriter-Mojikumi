@@ -22,6 +22,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # These are native desktop builds. Hosted runners export Android paths that
+  # can make Craft select Android-specific defaults in later workflow steps.
+  ANDROID_HOME: ""
+  ANDROID_NDK_HOME: ""
+  ANDROID_SDK_ROOT: ""
   CRAFT_REVISION: d12d8aa71729806c06902afc3426a22b3bea5088
   CRAFT_KF_VERSION: 6.28.0
   CRAFT_PACKAGE: ghostwriter-mojikumi/ghostwriter-mojikumi
@@ -122,6 +127,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          # Craft also uses ANDROID_SDK_ROOT to select Android's MinSizeRel
+          # cache, even after it has selected a native Windows ABI.
+          Remove-Item Env:ANDROID_HOME -ErrorAction SilentlyContinue
+          Remove-Item Env:ANDROID_SDK_ROOT -ErrorAction SilentlyContinue
+          Remove-Item Env:ANDROID_NDK_HOME -ErrorAction SilentlyContinue
           Invoke-WebRequest `
             -Uri "https://invent.kde.org/packaging/craft/-/raw/${env:CRAFT_REVISION}/setup/CraftBootstrap.py" `
             -OutFile "CraftBootstrap.py"
@@ -173,7 +183,7 @@ jobs:
           python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" \
             --ci-mode \
             --output-on-failure \
-            --buildtype Release \
+            --buildtype RelWithDebInfo \
             --options "libs/qt6.version=${CRAFT_QT_VERSION}" \
             --options "kde/frameworks.version=${CRAFT_KF_VERSION}" \
             --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \
@@ -186,7 +196,7 @@ jobs:
           python "${{ runner.temp }}/CraftRoot/craft/bin/craft.py" \
             --ci-mode \
             --output-on-failure \
-            --buildtype Release \
+            --buildtype RelWithDebInfo \
             --options "libs/qt6.version=${CRAFT_QT_VERSION}" \
             --options "kde/frameworks.version=${CRAFT_KF_VERSION}" \
             --options "${CRAFT_PACKAGE}.srcDir=${{ github.workspace }}" \

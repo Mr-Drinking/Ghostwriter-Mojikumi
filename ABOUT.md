@@ -23,9 +23,11 @@ endorsed, or supported by KDE or the upstream ghostwriter maintainers.
 
 ## Provenance and changes
 
-The fork is based on KDE ghostwriter 26.08.0, commit
-`db9690507e9ba9194af4ee0dbad66dc4b1507389`. The fork changes were first made
-and identified on 2026-08-13. They add CJK mojikumi in the editor and preview,
+The fork is based on commit
+`db9690507e9ba9194af4ee0dbad66dc4b1507389`, a snapshot from KDE
+ghostwriter's `release/26.08` branch targeting 26.08.0, before KDE published a
+26.08.0 tag. The fork changes were first made and identified on 2026-08-13.
+They add CJK mojikumi in the editor and preview,
 unify their default font, warn when another font may change punctuation
 spacing, and give distributable metadata an independent fork identity.
 

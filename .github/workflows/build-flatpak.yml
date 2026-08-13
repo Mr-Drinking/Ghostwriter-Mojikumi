@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Build Flatpak
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - mojikumi-26.08
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flatpak-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_ID: io.github.mr_drinking.ghostwritermojikumi
+  BUNDLE: ghostwriter-mojikumi-linux-x86_64.flatpak
+  MANIFEST: packaging/flatpak/io.github.mr_drinking.ghostwritermojikumi.yml
+
+jobs:
+  package:
+    name: ghostwriter-mojikumi-linux-x86_64-flatpak
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Validate source metadata and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          desktop-file-validate \
+            resources/linux/io.github.mr_drinking.ghostwritermojikumi.desktop
+          appstreamcli validate --no-net \
+            resources/linux/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+          flatpak-builder-lint manifest "${MANIFEST}"
+
+      - name: Build Flatpak repository and bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
+        with:
+          manifest-path: packaging/flatpak/io.github.mr_drinking.ghostwritermojikumi.yml
+          bundle: ghostwriter-mojikumi-linux-x86_64.flatpak
+          branch: stable
+          arch: x86_64
+          build-dir: .flatpak/build
+          repo-dir: .flatpak/repo
+          state-dir: .flatpak-builder
+          cache: false
+          restore-cache: false
+          upload-artifact: false
+
+      - name: Validate installed bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "${BUNDLE}"
+
+          flatpak install --user --noninteractive --no-related \
+            "./${BUNDLE}"
+          flatpak info --user "${APP_ID}"
+          test "$(flatpak info --user --show-ref "${APP_ID}")" = \
+            "app/${APP_ID}/x86_64/stable"
+          flatpak run --command=sh "${APP_ID}" -c '
+            test -x /app/bin/ghostwriter
+            test -f /app/share/applications/io.github.mr_drinking.ghostwritermojikumi.desktop
+            test -f /app/share/metainfo/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+          '
+
+          metadata="$(flatpak info --user --show-metadata "${APP_ID}")"
+          grep -F 'runtime=org.kde.Platform/x86_64/6.11' <<<"${metadata}"
+          grep -E '^shared=.*network' <<<"${metadata}"
+          grep -E '^shared=.*ipc' <<<"${metadata}"
+          grep -E '^sockets=.*wayland' <<<"${metadata}"
+          grep -E '^sockets=.*fallback-x11' <<<"${metadata}"
+          grep -E '^devices=.*dri' <<<"${metadata}"
+
+      - name: Upload Flatpak bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ghostwriter-mojikumi-linux-x86_64-flatpak
+          path: ghostwriter-mojikumi-linux-x86_64.flatpak
+          if-no-files-found: error
+          retention-days: 14
