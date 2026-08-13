@@ -22,9 +22,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  APP_ID: io.github.mr_drinking.ghostwritermojikumi
+  APP_ID: io.github.mr_drinking.ghostwriter-mojikumi
   BUNDLE: ghostwriter-mojikumi-linux-x86_64.flatpak
-  MANIFEST: packaging/flatpak/io.github.mr_drinking.ghostwritermojikumi.yml
+  MANIFEST: packaging/flatpak/io.github.mr_drinking.ghostwriter-mojikumi.yml
 
 jobs:
   package:
@@ -46,15 +46,15 @@ jobs:
         run: |
           set -euo pipefail
           desktop-file-validate \
-            resources/linux/io.github.mr_drinking.ghostwritermojikumi.desktop
+            resources/linux/io.github.mr_drinking.ghostwriter-mojikumi.desktop
           appstreamcli validate --no-net \
-            resources/linux/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+            resources/linux/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
           flatpak-builder-lint manifest "${MANIFEST}"
 
       - name: Build Flatpak repository and bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:
-          manifest-path: packaging/flatpak/io.github.mr_drinking.ghostwritermojikumi.yml
+          manifest-path: packaging/flatpak/io.github.mr_drinking.ghostwriter-mojikumi.yml
           bundle: ghostwriter-mojikumi-linux-x86_64.flatpak
           branch: stable
           arch: x86_64
@@ -78,8 +78,8 @@ jobs:
             "app/${APP_ID}/x86_64/stable"
           flatpak run --command=sh "${APP_ID}" -c '
             test -x /app/bin/ghostwriter
-            test -f /app/share/applications/io.github.mr_drinking.ghostwritermojikumi.desktop
-            test -f /app/share/metainfo/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+            test -f /app/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
+            test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
           '
 
           metadata="$(flatpak info --user --show-metadata "${APP_ID}")"

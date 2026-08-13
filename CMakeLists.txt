@@ -115,7 +115,7 @@ if(APPLE)
 
     # These are substituted by CMake into MacOSBundleInfo.plist.in.
     set(MACOSX_BUNDLE_DISPLAY_NAME "Ghostwriter Mojikumi — Unofficial Fork")
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.mr_drinking.ghostwritermojikumi")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.mr_drinking.ghostwriter-mojikumi")
     set(MACOSX_BUNDLE_BUNDLE_NAME "Ghostwriter Mojikumi")
     set(MACOSX_BUNDLE_INFO_STRING "Ghostwriter Mojikumi — Unofficial Fork")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING "Ghostwriter Mojikumi ${MOJIKUMI_RELEASE_VERSION}")
@@ -135,12 +135,12 @@ ecm_install_icons(
 )
 
 install(
-    PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwritermojikumi.desktop
+    PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwriter-mojikumi.desktop
     DESTINATION ${KDE_INSTALL_APPDIR}
 )
 
 install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/linux/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
     DESTINATION ${KDE_INSTALL_METAINFODIR}
 )
 

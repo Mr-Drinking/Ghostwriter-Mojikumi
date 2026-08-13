@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component type="desktop-application">
-  <id>io.github.mr_drinking.ghostwritermojikumi</id>
-  <launchable type="desktop-id">io.github.mr_drinking.ghostwritermojikumi.desktop</launchable>
+  <id>io.github.mr_drinking.ghostwriter-mojikumi</id>
+  <launchable type="desktop-id">io.github.mr_drinking.ghostwriter-mojikumi.desktop</launchable>
   <metadata_license>CC-BY-SA-4.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Ghostwriter Mojikumi — Unofficial Fork</name>

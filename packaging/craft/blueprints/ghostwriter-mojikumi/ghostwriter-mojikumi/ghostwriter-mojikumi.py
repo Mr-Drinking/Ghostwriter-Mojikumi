@@ -23,6 +23,10 @@ class subinfo(info.infoclass):
 
         if CraftCore.compiler.isLinux:
             self.buildDependencies["dev-utils/linuxdeploy"] = None
+            # QtWayland's Craft image also contains the compositor library,
+            # whose libwayland-server dependency must be available while
+            # linuxdeploy resolves and collects the AppImage runtime.
+            self.runtimeDependencies["libs/wayland"] = None
 
         # Craft's public Qt package paths are virtual aliases that resolve to
         # their Qt 6 implementation in a Qt6 Craft root.
@@ -55,7 +59,7 @@ class Package(CMakePackageBase):
         self.defines["description"] = self.subinfo.description
         self.defines["website"] = self.subinfo.webpage
         self.defines["license"] = self.sourceDir() / "COPYING"
-        self.defines["desktopFile"] = "io.github.mr_drinking.ghostwritermojikumi"
+        self.defines["desktopFile"] = "io.github.mr_drinking.ghostwriter-mojikumi"
 
         if CraftCore.compiler.isWindows:
             self.defines["executable"] = "bin/ghostwriter.exe"

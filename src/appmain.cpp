@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
 #if defined(Q_OS_LINUX)
     QGuiApplication::setDesktopFileName(
-        "io.github.mr_drinking.ghostwritermojikumi");
+        "io.github.mr_drinking.ghostwriter-mojikumi");
 #endif
 
     KAboutData aboutData("ghostwritermojikumi",
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     aboutData.setBugAddress(
         "https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/issues");
     aboutData.setDesktopFileName(
-        "io.github.mr_drinking.ghostwritermojikumi");
+        "io.github.mr_drinking.ghostwriter-mojikumi");
 
     // Set the application metadata.
     KAboutData::setApplicationData(aboutData);

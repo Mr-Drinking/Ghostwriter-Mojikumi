@@ -12,8 +12,8 @@ apps:
   ghostwriter:
     extensions:
       - kde-neon-6
-    common-id: io.github.mr_drinking.ghostwritermojikumi
-    desktop: usr/share/applications/io.github.mr_drinking.ghostwritermojikumi.desktop
+    common-id: io.github.mr_drinking.ghostwriter-mojikumi
+    desktop: usr/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
     command: usr/bin/ghostwriter
     plugs:
       - home
@@ -32,12 +32,12 @@ plugs:
 slots:
   session-dbus-interface:
     interface: dbus
-    name: io.github.mr_drinking.ghostwritermojikumi
+    name: io.github.mr_drinking.ghostwriter-mojikumi
     bus: session
 parts:
   ghostwriter:
     parse-info:
-      - usr/share/metainfo/io.github.mr_drinking.ghostwritermojikumi.metainfo.xml
+      - usr/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
     plugin: cmake
     source: .
     source-type: local

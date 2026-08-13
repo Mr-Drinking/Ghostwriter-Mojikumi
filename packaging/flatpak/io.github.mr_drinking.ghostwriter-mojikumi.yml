@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-id: io.github.mr_drinking.ghostwritermojikumi
+id: io.github.mr_drinking.ghostwriter-mojikumi
 runtime: org.kde.Platform
 runtime-version: '6.11'
 sdk: org.kde.Sdk

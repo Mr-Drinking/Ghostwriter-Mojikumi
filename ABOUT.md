@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 **Product name:** Ghostwriter Mojikumi — Unofficial Fork
 
-**Application ID:** `io.github.mr_drinking.ghostwritermojikumi`
+**Application ID:** `io.github.mr_drinking.ghostwriter-mojikumi`
 
 **Fork release:** `26.08.0-mojikumi.1`
 
