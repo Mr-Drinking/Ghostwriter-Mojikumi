@@ -10,6 +10,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QLibraryInfo>
+#include <QPair>
 #include <QLocale>
 #include <QTranslator>
 #include <QWindow>
@@ -229,6 +230,23 @@ int main(int argc, char *argv[])
                 failures.append(locale + QStringLiteral(":missing"));
             } else if (!settings->canLoadTranslation(locale)) {
                 failures.append(locale + QStringLiteral(":unloadable"));
+            }
+        }
+        const QList<QPair<QString, QString>> formatMenuTranslations {
+            {QStringLiteral("zh_CN"), QStringLiteral("格式(&O)")},
+            {QStringLiteral("zh_TW"), QStringLiteral("格式(&O)")},
+        };
+        for (const auto &[locale, expected] : formatMenuTranslations) {
+            if (!settings->setLocale(locale)) {
+                failures.append(locale + QStringLiteral(":not-installed"));
+                continue;
+            }
+            const QString actual = QCoreApplication::translate(
+                "ghostwriter::MainWindow",
+                "&Format");
+            if (actual != expected) {
+                failures.append(
+                    locale + QStringLiteral(":format-menu=") + actual);
             }
         }
         if (!failures.isEmpty()) {
