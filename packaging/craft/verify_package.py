@@ -298,6 +298,33 @@ def verify_macos(root: Path, expected_version: str) -> None:
     print(f"Found application entry point: {executable}")
 
     entries = all_entries(application)
+    helper = require(
+        "Qt WebEngine process helper",
+        named_files(entries, "QtWebEngineProcess"),
+    )
+    helper_dependencies = subprocess.run(
+        ["otool", "-L", str(helper)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+        check=False,
+    )
+    if helper_dependencies.returncode != 0:
+        raise RuntimeError(
+            f"Could not inspect Qt WebEngine helper dependencies: {helper_dependencies.stdout}"
+        )
+    if "@executable_path/../Frameworks/" in helper_dependencies.stdout:
+        raise RuntimeError(
+            "Qt WebEngine helper incorrectly resolves frameworks relative to its nested executable"
+        )
+    if "@loader_path/../../../../../../../QtWebEngineCore.framework/" not in helper_dependencies.stdout:
+        raise RuntimeError(
+            "Qt WebEngine helper does not resolve QtWebEngineCore from the outer application bundle"
+        )
+    print("Verified nested Qt WebEngine helper framework paths")
+
     require_webengine_payload(entries, "macos")
     run_version(executable, expected_version, application)
     run_font_verification(executable, application)
