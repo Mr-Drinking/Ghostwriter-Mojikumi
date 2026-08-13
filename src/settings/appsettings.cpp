@@ -814,6 +814,52 @@ AppSettings::AppSettings()
     }
 
     QSet<QString> visitedRoots;
+    // Probe the locales built from this source tree by their concrete paths.
+    // Flatpak may expose only the active locale while enumerating a locale
+    // directory even though the application-owned files are directly
+    // accessible.  Direct probing also makes the language chooser independent
+    // of that implementation detail.  Keep directory enumeration below so
+    // downstream packages can still add translations without changing code.
+    const QStringList packagedLocales {
+        QStringLiteral("ar"),
+        QStringLiteral("ca"),
+        QStringLiteral("ca@valencia"),
+        QStringLiteral("cs"),
+        QStringLiteral("de"),
+        QStringLiteral("en"),
+        QStringLiteral("en_GB"),
+        QStringLiteral("eo"),
+        QStringLiteral("es"),
+        QStringLiteral("eu"),
+        QStringLiteral("fi"),
+        QStringLiteral("fr"),
+        QStringLiteral("ga"),
+        QStringLiteral("gl"),
+        QStringLiteral("he"),
+        QStringLiteral("hi"),
+        QStringLiteral("ia"),
+        QStringLiteral("id"),
+        QStringLiteral("it"),
+        QStringLiteral("ja"),
+        QStringLiteral("ka"),
+        QStringLiteral("ko"),
+        QStringLiteral("lt"),
+        QStringLiteral("lv"),
+        QStringLiteral("nl"),
+        QStringLiteral("pl"),
+        QStringLiteral("pt"),
+        QStringLiteral("pt_BR"),
+        QStringLiteral("ru"),
+        QStringLiteral("sa"),
+        QStringLiteral("sk"),
+        QStringLiteral("sl"),
+        QStringLiteral("sv"),
+        QStringLiteral("tr"),
+        QStringLiteral("ug"),
+        QStringLiteral("uk"),
+        QStringLiteral("zh_CN"),
+        QStringLiteral("zh_TW"),
+    };
     for (const QString &rootPath : std::as_const(localeRoots)) {
         const QString cleanRoot = QDir::cleanPath(QDir(rootPath).absolutePath());
 #ifdef Q_OS_WIN32
@@ -827,9 +873,11 @@ AppSettings::AppSettings()
         visitedRoots.insert(rootKey);
 
         const QDir localeDir(cleanRoot);
-        const QStringList localeDirs = localeDir.entryList(
+        QStringList localeDirs = packagedLocales;
+        localeDirs.append(localeDir.entryList(
             QDir::Dirs | QDir::NoDotAndDotDot,
-            QDir::Name);
+            QDir::Name));
+        localeDirs.removeDuplicates();
         for (const QString &locale : localeDirs) {
             const QString translationFilePath = localeDir.filePath(
                 locale + QStringLiteral("/LC_MESSAGES/ghostwriter_qt.qm"));
