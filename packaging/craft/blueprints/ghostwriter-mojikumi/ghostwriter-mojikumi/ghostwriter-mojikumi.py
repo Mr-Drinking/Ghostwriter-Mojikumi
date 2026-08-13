@@ -1,10 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Ghostwriter Mojikumi contributors
 # SPDX-License-Identifier: BSD-2-Clause
 
-import subprocess
-
 import info
-import utils
 from CraftCore import CraftCore
 from Package.CMakePackageBase import CMakePackageBase
 
@@ -60,49 +57,33 @@ class Package(CMakePackageBase):
         if not CraftCore.compiler.isMacOS:
             return True
 
-        # Craft relocates QtWebEngineCore.framework into the outer app's
-        # Contents/Frameworks directory. Its generic dylib bundler rewrites
-        # every @rpath dependency as if the executable lived directly in
-        # Contents/MacOS, but QtWebEngineProcess is a deeply nested helper app.
-        # Preserve the helper's relationship to the outer Frameworks folder
-        # with @loader_path before the generic pass sees these references.
-        helper = (
+        # Craft correctly relocates every framework into the outer app's
+        # Contents/Frameworks directory, but its generic fix-up gives binaries
+        # loaded by the nested QtWebEngineProcess helper paths relative to that
+        # helper's executable. Restore the conventional nested-bundle view by
+        # linking helper Contents/Frameworks back to the outer Frameworks dir.
+        helper_contents = (
             self.archiveDir()
             / "lib/QtWebEngineCore.framework/Versions/A/Helpers"
-            / "QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+            / "QtWebEngineProcess.app/Contents"
         )
-        if not helper.is_file():
-            CraftCore.log.error(f"Missing macOS Qt WebEngine helper: {helper}")
-            return False
-
-        output = subprocess.check_output(
-            ["otool", "-L", str(helper)],
-            text=True,
-        )
-        rpath_dependencies = []
-        for line in output.splitlines()[1:]:
-            dependency = line.strip().split(" (compatibility version", 1)[0]
-            if dependency.startswith("@rpath/"):
-                rpath_dependencies.append(dependency)
-
-        if not rpath_dependencies:
+        if not helper_contents.is_dir():
             CraftCore.log.error(
-                f"No @rpath dependencies found in macOS Qt WebEngine helper: {helper}"
+                f"Missing macOS Qt WebEngine helper bundle: {helper_contents}"
             )
             return False
 
-        # Contents/MacOS -> helper Contents -> helper .app -> Helpers -> A ->
-        # Versions -> QtWebEngineCore.framework -> outer Contents/Frameworks.
-        loader_frameworks = "@loader_path/../../../../../../../"
-        command = ["install_name_tool"]
-        for dependency in rpath_dependencies:
-            command += [
-                "-change",
-                dependency,
-                loader_frameworks + dependency.removeprefix("@rpath/"),
-            ]
-        command.append(str(helper))
-        return utils.system(command)
+        frameworks_link = helper_contents / "Frameworks"
+        if frameworks_link.exists() or frameworks_link.is_symlink():
+            CraftCore.log.error(
+                f"Unexpected existing Qt WebEngine helper framework path: {frameworks_link}"
+            )
+            return False
+
+        # Six parent traversals from helper Contents arrive at archive/lib,
+        # which MacBasePackager later moves to outer Contents/Frameworks.
+        frameworks_link.symlink_to("../../../../../..", target_is_directory=True)
+        return frameworks_link.is_symlink()
 
     def createPackage(self):
         self.defines["appname"] = "ghostwriter"

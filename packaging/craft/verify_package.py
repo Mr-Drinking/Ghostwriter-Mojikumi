@@ -302,28 +302,18 @@ def verify_macos(root: Path, expected_version: str) -> None:
         "Qt WebEngine process helper",
         named_files(entries, "QtWebEngineProcess"),
     )
-    helper_dependencies = subprocess.run(
-        ["otool", "-L", str(helper)],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-        check=False,
-    )
-    if helper_dependencies.returncode != 0:
+    helper_frameworks = helper.parent.parent / "Frameworks"
+    if not helper_frameworks.is_symlink():
         raise RuntimeError(
-            f"Could not inspect Qt WebEngine helper dependencies: {helper_dependencies.stdout}"
+            f"Qt WebEngine helper Frameworks path is not a symlink: {helper_frameworks}"
         )
-    if "@executable_path/../Frameworks/" in helper_dependencies.stdout:
+    expected_frameworks = (application / "Contents" / "Frameworks").resolve()
+    if helper_frameworks.resolve() != expected_frameworks:
         raise RuntimeError(
-            "Qt WebEngine helper incorrectly resolves frameworks relative to its nested executable"
+            "Qt WebEngine helper Frameworks link resolves to "
+            f"{helper_frameworks.resolve()}, expected {expected_frameworks}"
         )
-    if "@loader_path/../../../../../../../QtWebEngineCore.framework/" not in helper_dependencies.stdout:
-        raise RuntimeError(
-            "Qt WebEngine helper does not resolve QtWebEngineCore from the outer application bundle"
-        )
-    print("Verified nested Qt WebEngine helper framework paths")
+    print("Verified nested Qt WebEngine helper Frameworks link")
 
     require_webengine_payload(entries, "macos")
     run_version(executable, expected_version, application)
