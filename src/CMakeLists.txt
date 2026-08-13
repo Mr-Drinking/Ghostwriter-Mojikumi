@@ -136,3 +136,15 @@ set_target_properties(ghostwriter PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
+
+if(APPLE)
+    # Keep this property in the target's source-directory scope. Otherwise
+    # CMake can generate CFBundleIconFile while silently omitting the ICNS
+    # from Contents/Resources.
+    set(MOJIKUMI_MACOS_ICON
+        ${CMAKE_CURRENT_SOURCE_DIR}/../resources/mac/ghostwriter.icns)
+    set_source_files_properties(
+        ${MOJIKUMI_MACOS_ICON}
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(ghostwriter PRIVATE ${MOJIKUMI_MACOS_ICON})
+endif()

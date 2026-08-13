@@ -80,10 +80,17 @@ jobs:
             test -x /app/bin/ghostwriter
             test -f /app/share/applications/io.github.mr_drinking.ghostwriter-mojikumi.desktop
             test -f /app/share/metainfo/io.github.mr_drinking.ghostwriter-mojikumi.metainfo.xml
+            icon=/app/share/icons/hicolor/256x256/apps/io.github.mr_drinking.ghostwriter-mojikumi.png
+            test -f "${icon}"
+            echo "9bb90cba581358d578884d994e271e601dc4eff4fa88b0cb2672ec68f7852f37  ${icon}" |
+              sha256sum --check --strict
           '
+          # This validation container runs as root. Disable Chromium's sandbox
+          # only for these short-lived CI diagnostics; the installed manifest
+          # and normal application environment do not receive this flag.
           for locale in zh_CN ja_JP ko_KR zh_TW zh_HK; do
             flatpak run --env=QT_QPA_PLATFORM=offscreen \
-              --env=QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu \
+              --env='QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu --no-sandbox' \
               --command=ghostwriter "${APP_ID}" \
               --verify-bundled-font "${locale}" | tee /tmp/mojikumi-font-check.log
             grep -F 'bundled-font-ok' /tmp/mojikumi-font-check.log

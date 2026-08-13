@@ -112,13 +112,10 @@ if(WIN32)
     target_sources(ghostwriter PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}/ghostwriter.rc)
 elseif(APPLE)
-    # Likewise, package the known ICNS explicitly. The previous ECM-generated
-    # source did not survive into the final Craft DMG application bundle.
-    set_source_files_properties(
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/ghostwriter.icns
-        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(ghostwriter PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources/mac/ghostwriter.icns)
+    # The ICNS is attached in src/CMakeLists.txt, in the same directory scope
+    # where the application target is created. CMake source-file properties
+    # are directory-scoped, so setting MACOSX_PACKAGE_LOCATION here would put
+    # CFBundleIconFile in Info.plist without copying the file into the bundle.
 else()
     ecm_add_app_icon(ICONS_SOURCES ICONS ${ICON_FILES})
     target_sources(ghostwriter PRIVATE ${ICONS_SOURCES})
