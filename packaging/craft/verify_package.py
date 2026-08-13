@@ -61,7 +61,19 @@ def require_webengine_payload(entries: list[Path], platform: str) -> None:
         "Qt WebEngine resources",
         named_files(entries, "qtwebengine_resources.pak"),
     )
-    require("Qt WebEngine ICU data", named_files(entries, "icudtl.dat"))
+    if platform == "linux":
+        # Craft's Linux Qt WebEngine is built against its shared ICU runtime,
+        # so Chromium's standalone icudtl.dat is intentionally not installed.
+        require(
+            "shared ICU data library",
+            matching(
+                entries,
+                lambda path: path.is_file()
+                and path.name.startswith("libicudata.so"),
+            ),
+        )
+    else:
+        require("Qt WebEngine ICU data", named_files(entries, "icudtl.dat"))
     require(
         "Qt WebEngine locale pack",
         matching(
