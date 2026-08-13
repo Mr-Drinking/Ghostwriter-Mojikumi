@@ -7,6 +7,7 @@
 #ifndef HTML_PREVIEW_H
 #define HTML_PREVIEW_H
 
+#include <QColor>
 #include <QScopedPointer>
 #include <QString>
 #include <QWidget>
@@ -40,6 +41,7 @@ public:
     (
         MarkdownDocument *document,
         Exporter *exporter,
+        const QColor &backgroundColor,
         QWidget *parent = nullptr
     );
 
@@ -77,7 +79,7 @@ public slots:
     /**
      * Call this method to change the CSS style sheet code.
      */
-    void setStyleSheet(const QString &css);
+    void setStyleSheet(const QString &css, const QColor &backgroundColor);
 
     /**
      * Call this method to enable or disable math rendering.

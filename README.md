@@ -49,6 +49,11 @@ The packaging workflows target the following artifacts:
   depends on a successful release workflow; this project is not listed on
   Flathub.
 
+The app's explicit light/dark choice is also forwarded to Qt's native platform
+appearance so title bars, menus, and native dialogs follow the editor theme on
+supported desktops. A Flatpak portal dialog intentionally follows the host
+desktop's appearance because it belongs to the host, not the sandboxed app.
+
 To install a downloaded Flatpak bundle for the current user:
 
 ```sh

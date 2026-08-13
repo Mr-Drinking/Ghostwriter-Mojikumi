@@ -955,7 +955,14 @@ void MainWindow::setupGui()
     // Note that the parent widget for this new window must be NULL, so that
     // it will hide beneath other windows when it is deactivated.
     //
-    htmlPreview = new HtmlPreview(documentManager->document(), appSettings->currentHtmlExporter(), this);
+    const QColor initialPreviewBackground = appSettings->darkModeEnabled()
+        ? theme.darkColorScheme().background
+        : theme.lightColorScheme().background;
+    htmlPreview = new HtmlPreview(
+        documentManager->document(),
+        appSettings->currentHtmlExporter(),
+        initialPreviewBackground,
+        this);
 
     connect(editor, &MarkdownEditor::typingPausedScaled, htmlPreview, &HtmlPreview::updatePreview);
 
@@ -1471,7 +1478,9 @@ void MainWindow::applyTheme()
     if (styleSheet.isNull()) {
         qCritical() << "Invalid HTML preview style sheet provided.";
     } else {
-        htmlPreview->setStyleSheet(styler.htmlPreviewStyleSheet());
+        htmlPreview->setStyleSheet(
+            styler.htmlPreviewStyleSheet(),
+            colorScheme.background);
     }
 
     adjustEditor();

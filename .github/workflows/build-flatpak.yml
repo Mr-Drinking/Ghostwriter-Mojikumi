@@ -103,7 +103,15 @@ jobs:
             --command=ghostwriter "${APP_ID}" \
             --verify-translations | tee /tmp/mojikumi-translation-check.log
           grep -F 'translations-ok' /tmp/mojikumi-translation-check.log
-
+          flatpak run --env=QT_QPA_PLATFORM=offscreen \
+            --env='QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu --no-sandbox' \
+            --command=ghostwriter "${APP_ID}" \
+            --verify-preview-backgrounds | tee /tmp/mojikumi-preview-theme-check.log
+          grep -F 'preview-backgrounds-ok' /tmp/mojikumi-preview-theme-check.log
+          # The offscreen QPA plugin intentionally has no native desktop
+          # appearance implementation. The real Windows and macOS package
+          # jobs exercise --verify-color-schemes against their platform QPA
+          # backends; keep this Flatpak headless check focused on bundle data.
           metadata="$(flatpak info --user --show-metadata "${APP_ID}")"
           grep -F 'runtime=org.kde.Platform/x86_64/6.11' <<<"${metadata}"
           grep -E '^shared=.*network' <<<"${metadata}"

@@ -268,6 +268,63 @@ def run_translation_verification(
         )
 
 
+def run_color_scheme_verification(
+    executable: Path,
+    cwd: Path,
+    qpa_platform: str | None = None,
+) -> None:
+    environment = os.environ.copy()
+    if qpa_platform:
+        environment.setdefault("QT_QPA_PLATFORM", qpa_platform)
+    completed = subprocess.run(
+        [str(executable), "--verify-color-schemes"],
+        cwd=cwd,
+        env=environment,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+        check=False,
+    )
+    output = completed.stdout.strip()
+    print(output)
+    if completed.returncode != 0 or "color-schemes-ok" not in output:
+        raise RuntimeError(
+            "Native color-scheme runtime verification failed with "
+            f"{completed.returncode}"
+        )
+
+
+def run_preview_background_verification(
+    executable: Path,
+    cwd: Path,
+    qpa_platform: str | None = None,
+) -> None:
+    environment = os.environ.copy()
+    if qpa_platform:
+        environment.setdefault("QT_QPA_PLATFORM", qpa_platform)
+    environment.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-gpu")
+    completed = subprocess.run(
+        [str(executable), "--verify-preview-backgrounds"],
+        cwd=cwd,
+        env=environment,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        encoding="utf-8",
+        errors="replace",
+        timeout=90,
+        check=False,
+    )
+    output = completed.stdout.strip()
+    print(output)
+    if completed.returncode != 0 or "preview-backgrounds-ok" not in output:
+        raise RuntimeError(
+            "Live-preview background runtime verification failed with "
+            f"{completed.returncode}"
+        )
+
+
 def require_packaged_translations(entries: list[Path]) -> None:
     required_locales = ("en", "ja", "ko", "zh_CN", "zh_TW")
     normalized_files = {
@@ -430,6 +487,8 @@ def verify_windows(root: Path, expected_version: str) -> None:
     require_packaged_translations(entries)
     require_windows_icon(executable)
     run_version(executable, expected_version, executable.parent)
+    run_preview_background_verification(executable, executable.parent)
+    run_color_scheme_verification(executable, executable.parent)
     run_translation_verification(executable, executable.parent)
     run_font_verification(executable, executable.parent)
 
@@ -465,6 +524,10 @@ def verify_macos(root: Path, expected_version: str) -> None:
                 f"Unexpected {key} in {info_path}: "
                 f"{actual_value!r}, expected {expected_value!r}"
             )
+    if info.get("NSRequiresAquaSystemAppearance") is True:
+        raise RuntimeError(
+            "macOS bundle opts out of native dark appearance support"
+        )
     print("Verified macOS bundle identity and version metadata")
 
     executable_name = info.get("CFBundleExecutable")
@@ -523,6 +586,8 @@ def verify_macos(root: Path, expected_version: str) -> None:
     require_webengine_payload(entries, "macos")
     require_packaged_translations(entries)
     run_version(executable, expected_version, application)
+    run_preview_background_verification(executable, application)
+    run_color_scheme_verification(executable, application)
     run_translation_verification(executable, application)
     run_font_verification(executable, application)
 
@@ -557,6 +622,11 @@ def verify_linux(root: Path, expected_version: str) -> None:
     require_webengine_payload(entries, "linux")
     require_packaged_translations(entries)
     run_version(app_run, expected_version, root, qpa_platform="offscreen")
+    run_preview_background_verification(
+        app_run,
+        root,
+        qpa_platform="offscreen",
+    )
     run_translation_verification(app_run, root, qpa_platform="offscreen")
     run_font_verification(app_run, root, qpa_platform="offscreen")
 

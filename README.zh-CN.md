@@ -42,6 +42,10 @@ Ghostwriter Mojikumi 以 KDE 的专注写作 Markdown 编辑器 ghostwriter 为�
   出现在 [GitHub Releases 页面](https://github.com/Mr-Drinking/Ghostwriter-Mojikumi/releases)
   取决于发布工作流是否成功；本项目尚未上架 Flathub。
 
+程序会把自身的明暗模式选择同步给 Qt 原生平台外观，使受支持桌面上的标题栏、
+菜单和原生对话框跟随编辑器主题。Flatpak 的 Portal 对话框属于宿主系统，按
+设计会继续跟随宿主桌面外观，而不是沙箱内应用的独立选择。
+
 将下载的 Flatpak 单文件包安装到当前用户：
 
 ```sh

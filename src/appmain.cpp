@@ -5,15 +5,20 @@
  */
 
 #include <QApplication>
+#include <QColor>
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDate>
 #include <QDateTime>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QLibraryInfo>
 #include <QPair>
 #include <QLocale>
+#include <QPalette>
+#include <QStyleHints>
 #include <QTranslator>
+#include <QWebEnginePage>
 #include <QWindow>
 
 #include <KAboutData>
@@ -202,10 +207,22 @@ int main(int argc, char *argv[])
         QCoreApplication::translate(
             "main",
             "Verifies that the packaged interface translations can be found and loaded."));
+    QCommandLineOption verifyColorSchemesOption(
+        "verify-color-schemes",
+        QCoreApplication::translate(
+            "main",
+            "Verifies that the application dark-mode setting reaches the native platform appearance."));
+    QCommandLineOption verifyPreviewBackgroundsOption(
+        "verify-preview-backgrounds",
+        QCoreApplication::translate(
+            "main",
+            "Verifies that the live-preview surface follows light and dark theme backgrounds."));
 
     clParser.addOption(renderingOption);
     clParser.addOption(verifyBundledFontOption);
     clParser.addOption(verifyTranslationsOption);
+    clParser.addOption(verifyColorSchemesOption);
+    clParser.addOption(verifyPreviewBackgroundsOption);
     clParser.process(app);
     aboutData.processCommandLine(&clParser);
 
@@ -214,6 +231,95 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon::fromTheme(
         QStringLiteral("ghostwriter"),
         QIcon(QStringLiteral(":/resources/icons/sc-apps-ghostwriter.svg"))));
+
+    if (clParser.isSet(verifyPreviewBackgroundsOption)) {
+        const QColor initialBackground(QStringLiteral("#151719"));
+        const QColor updatedBackground(QStringLiteral("#fff6ea"));
+        ghostwriter::MarkdownDocument document;
+        ghostwriter::HtmlPreview preview(
+            &document,
+            ghostwriter::AppSettings::instance()->currentHtmlExporter(),
+            initialBackground);
+
+        const QColor actualInitialBackground =
+            preview.page()->backgroundColor();
+        preview.setStyleSheet(
+            QStringLiteral("body { background-color: #fff6ea; }"),
+            updatedBackground);
+        const QColor actualUpdatedBackground =
+            preview.page()->backgroundColor();
+
+        if ((actualInitialBackground != initialBackground)
+            || (actualUpdatedBackground != updatedBackground)) {
+            fprintf(stderr,
+                "preview-backgrounds-failed initial=%s updated=%s\n",
+                qPrintable(actualInitialBackground.name()),
+                qPrintable(actualUpdatedBackground.name()));
+            return 1;
+        }
+
+        fprintf(stdout,
+            "preview-backgrounds-ok initial=%s updated=%s\n",
+            qPrintable(actualInitialBackground.name()),
+            qPrintable(actualUpdatedBackground.name()));
+        return 0;
+    }
+
+    if (clParser.isSet(verifyColorSchemesOption)) {
+        ghostwriter::AppSettings *settings = ghostwriter::AppSettings::instance();
+        QStyleHints *styleHints = QGuiApplication::styleHints();
+
+        if (!styleHints) {
+            fprintf(stderr, "color-schemes-failed no-style-hints\n");
+            return 1;
+        }
+
+        settings->setDarkModeEnabled(true);
+        QCoreApplication::processEvents();
+        const Qt::ColorScheme darkScheme = styleHints->colorScheme();
+        const QPalette darkPalette = QGuiApplication::palette();
+        const QColor darkWindow = darkPalette.color(QPalette::Window);
+        const QColor darkText = darkPalette.color(QPalette::WindowText);
+
+        settings->setDarkModeEnabled(false);
+        QCoreApplication::processEvents();
+        const Qt::ColorScheme lightScheme = styleHints->colorScheme();
+        const QPalette lightPalette = QGuiApplication::palette();
+        const QColor lightWindow = lightPalette.color(QPalette::Window);
+        const QColor lightText = lightPalette.color(QPalette::WindowText);
+
+        const bool darkPaletteIsDark =
+            darkWindow.lightnessF() < darkText.lightnessF();
+        const bool lightPaletteIsLight =
+            lightWindow.lightnessF() > lightText.lightnessF();
+
+        if ((darkScheme != Qt::ColorScheme::Dark)
+            || (lightScheme != Qt::ColorScheme::Light)
+            || !darkPaletteIsDark
+            || !lightPaletteIsLight) {
+            fprintf(stderr,
+                "color-schemes-failed platform=%s dark=%d palette=%s/%s light=%d palette=%s/%s\n",
+                qPrintable(QGuiApplication::platformName()),
+                static_cast<int>(darkScheme),
+                qPrintable(darkWindow.name()),
+                qPrintable(darkText.name()),
+                static_cast<int>(lightScheme),
+                qPrintable(lightWindow.name()),
+                qPrintable(lightText.name()));
+            return 1;
+        }
+
+        fprintf(stdout,
+            "color-schemes-ok platform=%s dark=%d palette=%s/%s light=%d palette=%s/%s\n",
+            qPrintable(QGuiApplication::platformName()),
+            static_cast<int>(darkScheme),
+            qPrintable(darkWindow.name()),
+            qPrintable(darkText.name()),
+            static_cast<int>(lightScheme),
+            qPrintable(lightWindow.name()),
+            qPrintable(lightText.name()));
+        return 0;
+    }
 
     if (clParser.isSet(verifyTranslationsOption)) {
         ghostwriter::AppSettings *settings = ghostwriter::AppSettings::instance();

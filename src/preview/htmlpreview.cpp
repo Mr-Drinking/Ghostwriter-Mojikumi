@@ -83,6 +83,7 @@ HtmlPreview::HtmlPreview
 (
     MarkdownDocument *document,
     Exporter *exporter,
+    const QColor &backgroundColor,
     QWidget *parent
 ) : QWebEngineView(parent),
     d_ptr(new HtmlPreviewPrivate(this))
@@ -98,6 +99,10 @@ HtmlPreview::HtmlPreview
     d->baseUrl = "";
 
     this->setPage(new SandboxedWebPage(this));
+    // QWebEnginePage defaults to an opaque white surface. Set the selected
+    // theme color before the first setHtml() call so a dark preview never
+    // exposes that surface while Chromium starts or reloads the wrapper.
+    this->page()->setBackgroundColor(backgroundColor);
     this->settings()->setDefaultTextEncoding("utf-8");
     this->settings()->setAttribute(
         QWebEngineSettings::LocalContentCanAccessFileUrls,
@@ -249,10 +254,16 @@ void HtmlPreview::setHtmlExporter(Exporter *exporter)
     updatePreview();
 }
 
-void HtmlPreview::setStyleSheet(const QString &css)
+void HtmlPreview::setStyleSheet(
+    const QString &css,
+    const QColor &backgroundColor)
 {
     Q_D(HtmlPreview);
 
+    // Match the page surface behind the DOM to the generated preview CSS.
+    // QWebEnginePage otherwise defaults to white, which is visible as a flash
+    // while a dark preview page is loading or restyling.
+    this->page()->setBackgroundColor(backgroundColor);
     d->proxy->setStyleSheet(css);
 }
 

@@ -13,11 +13,13 @@
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QFontInfo>
+#include <QGuiApplication>
 #include <QHash>
 #include <QLocale>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QStyleHints>
 #include <QString>
 #include <QStringList>
 #include <QTranslator>
@@ -32,6 +34,24 @@
 
 namespace ghostwriter
 {
+namespace
+{
+void applyPlatformColorScheme(const bool darkModeEnabled)
+{
+    QStyleHints *styleHints = QGuiApplication::styleHints();
+
+    if (styleHints) {
+        // Ghostwriter has its own explicit light/dark toggle, so keep native
+        // platform chrome, menus, and dialogs on the same side of that choice.
+        // On macOS this sets NSApp.appearance through Qt's Cocoa integration.
+        styleHints->setColorScheme(
+            darkModeEnabled
+                ? Qt::ColorScheme::Dark
+                : Qt::ColorScheme::Light);
+    }
+}
+}
+
 namespace constants
 {
 constexpr auto GW_FAVORITE_STATISTIC_KEY{"Session/favoriteStatistic"};
@@ -549,6 +569,7 @@ void AppSettings::setDarkModeEnabled(bool enabled)
     Q_D(AppSettings);
     
     d->darkModeEnabled = enabled;
+    applyPlatformColorScheme(enabled);
 }
 
 QString AppSettings::locale() const
@@ -1033,7 +1054,10 @@ AppSettings::AppSettings()
     d->folderViewShowAllFilesEnabled = appSettings.value(constants::GW_REMEMBER_FOLDER_VIEW_SHOW_ALL_FILES_KEY, QVariant(false)).toBool();
     d->displayTimeInFullScreenEnabled = appSettings.value(constants::GW_DISPLAY_TIME_IN_FULL_SCREEN_KEY, QVariant(true)).toBool();
     d->themeName = appSettings.value(constants::GW_THEME_KEY, QVariant("Classic Light")).toString();
-    d->darkModeEnabled = appSettings.value(constants::GW_DARK_MODE_KEY, QVariant(true)).toBool();
+    setDarkModeEnabled(
+        appSettings.value(
+            constants::GW_DARK_MODE_KEY,
+            QVariant(true)).toBool());
 
     setLocale(d->locale);
     d->liveSpellCheckEnabled = appSettings.value(constants::GW_LIVE_SPELL_CHECK_KEY, QVariant(true)).toBool();
