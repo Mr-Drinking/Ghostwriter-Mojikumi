@@ -338,6 +338,65 @@ jobs:
             throw "Installed-package smoke test exited with $LASTEXITCODE"
           }
 
+          # Verify the Start-menu shortcut itself, not only the EXE resource.
+          # An empty IconLocation renders as a blank tile on some Windows 11
+          # installations even when the target executable embeds an icon.
+          $programsRoot = [Environment]::GetFolderPath("Programs")
+          $shortcuts = @(
+            Get-ChildItem -LiteralPath $programsRoot -Recurse -File -Filter "Ghostwriter Mojikumi.lnk"
+          )
+          if ($shortcuts.Count -ne 1) {
+            throw "Expected exactly one Start-menu shortcut, found $($shortcuts.Count)"
+          }
+
+          $shell = New-Object -ComObject WScript.Shell
+          $shortcut = $shell.CreateShortcut($shortcuts[0].FullName)
+          $expectedTarget = [System.IO.Path]::GetFullPath(
+            (Join-Path $installRoot "bin/ghostwriter.exe")
+          )
+          if (-not [string]::Equals(
+            [System.IO.Path]::GetFullPath($shortcut.TargetPath),
+            $expectedTarget,
+            [System.StringComparison]::OrdinalIgnoreCase
+          )) {
+            throw "Start-menu shortcut targets '$($shortcut.TargetPath)', expected '$expectedTarget'"
+          }
+          if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) {
+            throw "Start-menu shortcut has an empty IconLocation"
+          }
+
+          $iconSeparator = $shortcut.IconLocation.LastIndexOf(",")
+          $shortcutIconPath = if ($iconSeparator -ge 0) {
+            $shortcut.IconLocation.Substring(0, $iconSeparator)
+          } else {
+            $shortcut.IconLocation
+          }
+          $shortcutIconPath = [Environment]::ExpandEnvironmentVariables(
+            $shortcutIconPath.Trim('"')
+          )
+          $expectedIconPath = [System.IO.Path]::GetFullPath(
+            (Join-Path $installRoot "ghostwriter.ico")
+          )
+          if (-not [string]::Equals(
+            [System.IO.Path]::GetFullPath($shortcutIconPath),
+            $expectedIconPath,
+            [System.StringComparison]::OrdinalIgnoreCase
+          )) {
+            throw "Start-menu shortcut icon is '$shortcutIconPath', expected '$expectedIconPath'"
+          }
+          if (-not (Test-Path -LiteralPath $expectedIconPath -PathType Leaf)) {
+            throw "Start-menu shortcut icon does not exist: $expectedIconPath"
+          }
+          Add-Type -AssemblyName System.Drawing
+          $installedIcon = [System.Drawing.Icon]::new($expectedIconPath)
+          try {
+            if ($installedIcon.Width -lt 16 -or $installedIcon.Height -lt 16) {
+              throw "Start-menu shortcut icon is unexpectedly small: $($installedIcon.Width)x$($installedIcon.Height)"
+            }
+          } finally {
+            $installedIcon.Dispose()
+          }
+
           $uninstaller = Join-Path $installRoot "uninstall.exe"
           if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
             throw "Missing NSIS uninstaller: $uninstaller"

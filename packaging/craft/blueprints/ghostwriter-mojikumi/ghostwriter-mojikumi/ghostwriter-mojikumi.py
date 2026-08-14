@@ -142,13 +142,16 @@ class Package(CMakePackageBase):
         self.defines["desktopFile"] = "io.github.mr_drinking.ghostwriter-mojikumi"
 
         if CraftCore.compiler.isWindows:
-            self.defines["executable"] = "bin/ghostwriter.exe"
             self.defines["company"] = "Mr-Drinking"
             self.defines["icon"] = self.sourceDir() / "resources/windows/ghostwriter.ico"
+            # Craft's automatic shortcut generated from ``executable`` leaves
+            # IconLocation empty.  Define the shortcut ourselves so Windows'
+            # Start menu always has an explicit, installed icon to resolve.
             self.defines["shortcuts"] = [
                 {
                     "name": "Ghostwriter Mojikumi",
                     "target": "bin/ghostwriter.exe",
+                    "icon": r"$INSTDIR\ghostwriter.ico",
                     "description": self.subinfo.description,
                 }
             ]
